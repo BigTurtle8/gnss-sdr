@@ -288,7 +288,7 @@ static inline void volk_gnsssdr_8u_x2_multiply_8u_rvv(unsigned char* cVector, co
             vuint8m8_t bVal = __riscv_vle8_v_u8m8(bPtr, vl);
 
             // c[i] = lower byte of (a[i] * b[i])
-            vuint8m8_t cVal = __riscv_vmul_vv_u8m8(aPtr, bPtr, vl);
+            vuint8m8_t cVal = __riscv_vmul_vv_u8m8(aVal, bVal, vl);
 
             // Store c[0..vl)
             __riscv_vse8_v_u8m8(cPtr, cVal, vl);
