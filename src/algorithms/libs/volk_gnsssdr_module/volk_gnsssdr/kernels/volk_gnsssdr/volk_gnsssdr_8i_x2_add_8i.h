@@ -208,7 +208,8 @@ static inline void volk_gnsssdr_8i_x2_add_8i_a_avx2(char* cVector, const char* a
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 
-static inline void volk_gnsssdr_8i_x2_add_8i_rvv(char* cVector, const char* aVector, const char* bVector, unsigned int num_points) {
+static inline void volk_gnsssdr_8i_x2_add_8i_rvv(char* cVector, const char* aVector, const char* bVector, unsigned int num_points)
+{
     size_t n = num_points;
 
     // Initialize pointers to track progress as stripmine
