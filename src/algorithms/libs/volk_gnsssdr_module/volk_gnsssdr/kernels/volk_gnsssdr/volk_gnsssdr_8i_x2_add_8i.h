@@ -213,8 +213,8 @@ static inline void volk_gnsssdr_8i_x2_add_8i_rvv(char* cVector, const char* aVec
 
     // Initialize pointers to track progress as stripmine
     char* cPtr = cVector; // For consistency
-    char* aPtr = aVector;
-    char* bPtr = bVector;
+    const char* aPtr = aVector;
+    const char* bPtr = bVector;
 
     for (size_t vl; n > 0; n -= vl, cPtr += vl, aPtr += vl, bPtr += vl)
         {
