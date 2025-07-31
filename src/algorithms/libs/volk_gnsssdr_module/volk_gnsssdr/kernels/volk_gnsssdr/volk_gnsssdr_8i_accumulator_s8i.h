@@ -230,13 +230,13 @@ static inline void volk_gnsssdr_8i_accumulator_s8i_rvv(char* result, const char*
     // to keep track while stripmining
     const signed char* inPtr = (const signed char*) inputBuffer;
 
-    // Initialize zero'd vector to accumulate into
-    vint8m1_t accVal = __riscv_vmv_v_i(0);
+    // accVal[0] = 0
+    vint8m1_t accVal = __riscv_vmv_v_x_i8m1(0, 1);
 
     for (size_t vl; n > 0; n -= vl, inPtr += vl)
         {
             // Record how many elements will actually be processed
-            vl = __riscv_vsetvl_v_e8m8(n);
+            vl = __riscv_vsetvl_e8m8(n);
 
             // Load in[0..vl)
             vint8m8_t inVal = __riscv_vle8_v_i8m8(inPtr, vl);
