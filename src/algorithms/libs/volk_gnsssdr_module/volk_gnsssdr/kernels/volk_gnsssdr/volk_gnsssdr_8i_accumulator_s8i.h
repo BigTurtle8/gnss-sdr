@@ -230,7 +230,7 @@ static inline void volk_gnsssdr_8i_accumulator_s8i_rvv(char* result, const char*
     // to keep track while stripmining
     const signed char* inPtr = (const signed char*) inputBuffer;
 
-    // accVal[0] = 0
+    // acc[0] = 0
     vint8m1_t accVal = __riscv_vmv_v_x_i8m1(0, 1);
 
     for (size_t vl; n > 0; n -= vl, inPtr += vl)
@@ -252,7 +252,7 @@ static inline void volk_gnsssdr_8i_accumulator_s8i_rvv(char* result, const char*
     // Explicitly cast to type accepted by macro
     signed char* resPtr = (signed char*) result;
 
-    // *result = accVal[0]
+    // *result = acc[0]
     // NOTE: With this implementation,
     // if n == 0, then *result = 0
     __riscv_vse8_v_i8m1(resPtr, accVal, 1);
