@@ -242,7 +242,7 @@ static inline void volk_gnsssdr_8i_accumulator_s8i_rvv(char* result, const char*
             vint8m8_t inVal = __riscv_vle8_v_i8m8(inPtr, vl);
 
             // acc[0] = sum( acc[0], in[0..vl) )
-            vint8m1_t outVal = __riscv_vredsum_vs_i8m8_i8m1(inVal, accVal, vl);
+            accVal = __riscv_vredsum_vs_i8m8_i8m1(inVal, accVal, vl);
 
             // On looping, decrement the number of
             // elements left and increase the pointers

@@ -391,7 +391,7 @@ static inline void volk_gnsssdr_8i_max_s8i_a_sse2(char* target, const char* src0
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 
-static inline void volk_gnsssdr_8i_max_s8i(char* target, const char* src0, unsigned int num_points)
+static inline void volk_gnsssdr_8i_max_s8i_rvv(char* target, const char* src0, unsigned int num_points)
 {
     // To make consistent with other implementations,
     // do nothing if size of buffer is 0
