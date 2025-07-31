@@ -388,4 +388,50 @@ static inline void volk_gnsssdr_8i_max_s8i_a_sse2(char* target, const char* src0
 #endif /*LV_HAVE_SSE2*/
 
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_gnsssdr_8i_max_s8i(char* target, const char* src0, unsigned int num_points)
+{
+    // To make consistent with other implementations,
+    // do nothing if size of buffer is 0
+    if (num_points == 0)
+        {
+            return;
+        }
+
+    size_t n = num_points;
+
+    // Initialize pointer of correct type
+    // to keep track while strip mining
+    const signed char* inPtr = (const signed char*) src0;
+
+    // max[0] = in[0]
+    vint8m1_t maxVal = __riscv_vmv_v_x_i8m1(inPtr[0], 1);
+
+    for (size_t vl; n > 0; n -= vl, inPtr += vl)
+        {
+            // Record how many elements will actually be processed
+            vl = __riscv_vsetvl_e8m8(n);
+
+            // Load in[0..vl)
+            vint8m8_t inVal = __riscv_vle8_v_i8m8(inPtr, vl);
+
+            // max[0] = max( max[0], in[0..vl) )
+            maxVal = __riscv_vredmax_vs_i8m8_i8m1(inVal, maxVal, vl);
+
+            // On looping, decrement the number of
+            // elements left and increase the pointers
+            // by the number of elements processed
+        }
+
+    // Explicitly cast to type accepted by pointer
+    signed char* resPtr = (signed char*) target;
+
+    // *target = max[0]
+    __riscv_vse8_v_i8m1(resPtr, maxVal, 1);
+}
+#endif /* LV_HAVE_RVV */
+
+
 #endif /*INCLUDED_volk_gnsssdr_8i_max_s8i_H*/
