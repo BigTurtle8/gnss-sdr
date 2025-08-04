@@ -660,7 +660,7 @@ static inline void volk_gnsssdr_8i_index_max_16u_rvv(unsigned int* target, const
                     */
 
                     // maxTargetI = index of first set bit in maxTarget
-                    long maxTargetI = (unsigned int) __riscv_vfirst_m_b1(maxTargetMask, vl);
+                    unsigned int maxTargetI = (unsigned int) __riscv_vfirst_m_b1(maxTargetMask, vl);
                     // Cast is risky; keep eye out
 
                     unsigned int elapsedN = num_points - n;
