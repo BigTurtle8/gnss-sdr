@@ -652,7 +652,7 @@ static inline void volk_gnsssdr_8i_index_max_16u_rvv(unsigned int* target, const
 
                     // maxTarget[i] = in[i] == max[0] ? 1 : 0
                     vbool1_t maxTargetMask = __riscv_vmseq_vx_i8m8_b1(
-                        inVal, __riscv_vmv_x_s_i8m1_i8(maxVal), vl
+                        inVal, currMax, vl
                     );
 
                     /*
