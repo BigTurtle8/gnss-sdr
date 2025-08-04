@@ -583,4 +583,77 @@ static inline void volk_gnsssdr_8i_index_max_16u_a_sse2(unsigned int* target, co
 #endif /*LV_HAVE_SSE2*/
 
 
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_gnsssdr_8i_index_max_16u_rvv(unsigned int* target, const char* src0, unsigned int num_points)
+{
+    // To make consistent with other implementations,
+    // do nothing if size of buffer is 0
+    if (num_points == 0)
+        {
+            return;
+        }
+
+    size_t n = num_points;
+
+    // Initialize pointer of correct type
+    // to keep track while strip mining
+    const signed char* inPtr = (const signed char*) src0;
+
+    // max[0] = in[0]
+    vint8m1_t maxVal = __riscv_vmv_s_x_i8m1(inPtr[0], 1);
+
+    unsigned int maxI = 0;
+
+    for (size_t vl, elapsed; n > 0; n -= vl, inPtr += vl)
+        {
+            // Record number of elements that will be processed
+            vl = __riscv_vsetvl_e8m8(n);
+
+            // Load in[0..vl)
+            vint8m8_t inVal = __riscv_vle8_v_i8m8(inPtr, vl);
+
+            // target[i] = in[i] > max[0] ? 1 : 0
+            vbool1_t targetVal = __riscv_vmsgt_vx_i8m8_b1(
+                inVal, __riscv_vmv_x_s_i8m1_i8(maxVal), vl
+            );
+
+            // Count number of set bits in target
+            unsigned long targetN = __riscv_vcpop_m_b1(targetVal, vl);
+
+            if (targetN != 0)
+                {
+                    // Masked to only indices where in[i] > max[0]
+                    // max[0] = max( max[0], in[0..vl) )
+                    maxVal = __riscv_vredmax_vs_i8m8_i8m1_m(target, inVal, maxVal, vl);
+
+                    // Masked to only indices where in[i] > max[0]
+                    // maxTarget[i] = in[i] == max[0] ? 1 : 0
+                    vbool1_t maxTargetVal = __riscv_vmseq_vx_i8m8_b1_m(
+                        target, inVal, __riscv_vmv_x_s_i8m1_i8(maxVal), vl
+                    );
+
+                    // Masked to only indices where in[i] > max[0]
+                    // maxTargetI = index of first set bit in maxTarget
+                    long maxTargetI = (unsigned int) __riscv_vfirst_m_b1_m(target, maxTargetVal, vl);
+                    // Cast is risky; keep eye out
+
+                    unsigned int elapsedN = num_points - n;
+
+                    // Adjust index to correct spot in larger buffer
+                    maxI = maxTargetI + elapsedN;
+                }
+
+            // On looping, decrement the number of
+            // elements left and increase the pointers
+            // by the number of elements processed
+        }
+
+    *target = maxI;
+}
+
+#endif /*LV_HAVE_RVV*/
+
+
 #endif /*INCLUDED_volk_gnsssdr_8i_index_max_16u_H*/
