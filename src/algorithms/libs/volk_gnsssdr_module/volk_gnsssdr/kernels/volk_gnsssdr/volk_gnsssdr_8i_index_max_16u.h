@@ -308,15 +308,16 @@ static inline void volk_gnsssdr_8i_index_max_16u_generic(unsigned int* target, c
 {
     if (num_points > 0)
         {
-            char max = src0[0];
+            const signed char* inPtr = (const signed char*) src0;
+            signed char max = src0[0];
             unsigned int index = 0;
             unsigned int i;
             for (i = 1; i < num_points; ++i)
                 {
-                    if (src0[i] > max)
+                    if (inPtr[i] > max)
                         {
                             index = i;
-                            max = src0[i];
+                            max = inPtr[i];
                         }
                 }
             target[0] = index;
