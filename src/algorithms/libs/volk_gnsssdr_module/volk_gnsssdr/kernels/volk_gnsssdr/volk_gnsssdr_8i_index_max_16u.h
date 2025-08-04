@@ -629,13 +629,13 @@ static inline void volk_gnsssdr_8i_index_max_16u_rvv(unsigned int* target, const
                     // max[0] = max( max[0], in[0..vl) )
                     maxVal = __riscv_vredmax_vs_i8m8_i8m1_m(targetMask, inVal, maxVal, vl);
 
-                    // Masked to only indices where in[i] > max[0]
+                    // Still masked as previously
                     // maxTarget[i] = in[i] == max[0] ? 1 : 0
                     vbool1_t maxTargetMask = __riscv_vmseq_vx_i8m8_b1_m(
                         targetMask, inVal, __riscv_vmv_x_s_i8m1_i8(maxVal), vl
                     );
 
-                    // Masked to only indices where in[i] > max[0]
+                    // Still masked as previously
                     // maxTargetI = index of first set bit in maxTarget
                     long maxTargetI = (unsigned int) __riscv_vfirst_m_b1_m(targetMask, maxTargetMask, vl);
                     // Cast is risky; keep eye out
