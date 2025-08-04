@@ -628,7 +628,7 @@ static inline void volk_gnsssdr_8i_index_max_16u_rvv(unsigned int* target, const
             */
 
             // max[0] = max( max[0], in[0..vl) )
-            maxVal = __riscv_vredmax_vs_i8m8_i8m1_m(targetMask, inVal, maxVal, vl);
+            maxVal = __riscv_vredmax_vs_i8m8_i8m1(inVal, maxVal, vl);
             const signed char currMax = __riscv_vmv_x_s_i8m1_i8(maxVal);
 
             //if (targetN != 0)
