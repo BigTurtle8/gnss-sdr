@@ -609,6 +609,13 @@ static inline void volk_gnsssdr_8i_index_max_16u_rvv(unsigned int* target, const
 
     unsigned int maxI = 0;
 
+    // Note: Commented out code represent an alternate
+    // method of using RVV, which relies on `vmsgt`
+    // to bypass running `vmredmax` on sections
+    // of the vector that don't have any elements already
+    // greater than the max. Emulated, using `vmsgt`
+    // gives a performance boost of a whole second,
+    // but will have to wait for real hardware.
     for (size_t vl; n > 0; n -= vl, inPtr += vl)
         {
             // Record number of elements that will be processed
