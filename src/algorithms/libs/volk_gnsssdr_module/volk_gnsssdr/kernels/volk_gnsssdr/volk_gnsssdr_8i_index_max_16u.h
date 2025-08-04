@@ -616,28 +616,28 @@ static inline void volk_gnsssdr_8i_index_max_16u_rvv(unsigned int* target, const
             vint8m8_t inVal = __riscv_vle8_v_i8m8(inPtr, vl);
 
             // target[i] = in[i] > max[0] ? 1 : 0
-            vbool1_t targetVal = __riscv_vmsgt_vx_i8m8_b1(
+            vbool1_t targetMask = __riscv_vmsgt_vx_i8m8_b1(
                 inVal, __riscv_vmv_x_s_i8m1_i8(maxVal), vl
             );
 
             // Count number of set bits in target
-            unsigned long targetN = __riscv_vcpop_m_b1(targetVal, vl);
+            unsigned long targetN = __riscv_vcpop_m_b1(targetMask, vl);
 
             if (targetN != 0)
                 {
                     // Masked to only indices where in[i] > max[0]
                     // max[0] = max( max[0], in[0..vl) )
-                    maxVal = __riscv_vredmax_vs_i8m8_i8m1_m(targetVal, inVal, maxVal, vl);
+                    maxVal = __riscv_vredmax_vs_i8m8_i8m1_m(targetMask, inVal, maxVal, vl);
 
                     // Masked to only indices where in[i] > max[0]
                     // maxTarget[i] = in[i] == max[0] ? 1 : 0
-                    vbool1_t maxTargetVal = __riscv_vmseq_vx_i8m8_b1_m(
-                        targetVal, inVal, __riscv_vmv_x_s_i8m1_i8(maxVal), vl
+                    vbool1_t maxTargetMask = __riscv_vmseq_vx_i8m8_b1_m(
+                        targetMask, inVal, __riscv_vmv_x_s_i8m1_i8(maxVal), vl
                     );
 
                     // Masked to only indices where in[i] > max[0]
                     // maxTargetI = index of first set bit in maxTarget
-                    long maxTargetI = (unsigned int) __riscv_vfirst_m_b1_m(targetVal, maxTargetVal, vl);
+                    long maxTargetI = (unsigned int) __riscv_vfirst_m_b1_m(targetMask, maxTargetVal, vl);
                     // Cast is risky; keep eye out
 
                     unsigned int elapsedN = num_points - n;
