@@ -605,6 +605,8 @@ static inline void volk_gnsssdr_8i_index_max_16u_rvv(unsigned int* target, const
     // max[0] = in[0]
     vint8m1_t maxVal = __riscv_vmv_s_x_i8m1(inPtr[0], 1);
 
+    signed char prevMax = inPtr[0];
+
     unsigned int maxI = 0;
 
     for (size_t vl; n > 0; n -= vl, inPtr += vl)
@@ -615,6 +617,7 @@ static inline void volk_gnsssdr_8i_index_max_16u_rvv(unsigned int* target, const
             // Load in[0..vl)
             vint8m8_t inVal = __riscv_vle8_v_i8m8(inPtr, vl);
 
+            /*
             // target[i] = in[i] > max[0] ? 1 : 0
             vbool1_t targetMask = __riscv_vmsgt_vx_i8m8_b1(
                 inVal, __riscv_vmv_x_s_i8m1_i8(maxVal), vl
@@ -622,28 +625,44 @@ static inline void volk_gnsssdr_8i_index_max_16u_rvv(unsigned int* target, const
 
             // Count number of set bits in target
             unsigned long targetN = __riscv_vcpop_m_b1(targetMask, vl);
+            */
 
-            if (targetN != 0)
+            // max[0] = max( max[0], in[0..vl) )
+            maxVal = __riscv_vredmax_vs_i8m8_i8m1_m(targetMask, inVal, maxVal, vl);
+            const signed char currMax = __riscv_vmv_x_s_i8m1_i8(maxVal);
+
+            //if (targetN != 0)
+            // If found new, larger max, find first index with that element
+            if (currMax > prevMax)
                 {
+                    /*
                     // Masked to only indices where in[i] > max[0]
                     // max[0] = max( max[0], in[0..vl) )
                     maxVal = __riscv_vredmax_vs_i8m8_i8m1_m(targetMask, inVal, maxVal, vl);
 
                     // Still masked as previously
+                    */
+
                     // maxTarget[i] = in[i] == max[0] ? 1 : 0
-                    vbool1_t maxTargetMask = __riscv_vmseq_vx_i8m8_b1_m(
-                        targetMask, inVal, __riscv_vmv_x_s_i8m1_i8(maxVal), vl
+                    vbool1_t maxTargetMask = __riscv_vmseq_vx_i8m8_b1(
+                        inVal, __riscv_vmv_x_s_i8m1_i8(maxVal), vl
                     );
 
+                    /*
                     // Still masked as previously
+                    */
+
                     // maxTargetI = index of first set bit in maxTarget
-                    long maxTargetI = (unsigned int) __riscv_vfirst_m_b1_m(targetMask, maxTargetMask, vl);
+                    long maxTargetI = (unsigned int) __riscv_vfirst_m_b1(maxTargetMask, vl);
                     // Cast is risky; keep eye out
 
                     unsigned int elapsedN = num_points - n;
 
                     // Adjust index to correct spot in larger buffer
                     maxI = maxTargetI + elapsedN;
+
+                    // Keep track of (now) previous max
+                    prevMax = currMax;
                 }
 
             // On looping, decrement the number of
