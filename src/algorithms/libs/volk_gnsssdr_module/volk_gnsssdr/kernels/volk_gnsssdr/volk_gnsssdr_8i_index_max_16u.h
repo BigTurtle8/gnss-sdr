@@ -606,7 +606,7 @@ static inline void volk_gnsssdr_8i_index_max_16u_rvv(unsigned int* target, const
 
     unsigned int maxI = 0;
 
-    for (size_t vl, elapsed; n > 0; n -= vl, inPtr += vl)
+    for (size_t vl; n > 0; n -= vl, inPtr += vl)
         {
             // Record number of elements that will be processed
             vl = __riscv_vsetvl_e8m8(n);
@@ -626,17 +626,17 @@ static inline void volk_gnsssdr_8i_index_max_16u_rvv(unsigned int* target, const
                 {
                     // Masked to only indices where in[i] > max[0]
                     // max[0] = max( max[0], in[0..vl) )
-                    maxVal = __riscv_vredmax_vs_i8m8_i8m1_m(target, inVal, maxVal, vl);
+                    maxVal = __riscv_vredmax_vs_i8m8_i8m1_m(targetVal, inVal, maxVal, vl);
 
                     // Masked to only indices where in[i] > max[0]
                     // maxTarget[i] = in[i] == max[0] ? 1 : 0
                     vbool1_t maxTargetVal = __riscv_vmseq_vx_i8m8_b1_m(
-                        target, inVal, __riscv_vmv_x_s_i8m1_i8(maxVal), vl
+                        targetVal, inVal, __riscv_vmv_x_s_i8m1_i8(maxVal), vl
                     );
 
                     // Masked to only indices where in[i] > max[0]
                     // maxTargetI = index of first set bit in maxTarget
-                    long maxTargetI = (unsigned int) __riscv_vfirst_m_b1_m(target, maxTargetVal, vl);
+                    long maxTargetI = (unsigned int) __riscv_vfirst_m_b1_m(targetVal, maxTargetVal, vl);
                     // Cast is risky; keep eye out
 
                     unsigned int elapsedN = num_points - n;
