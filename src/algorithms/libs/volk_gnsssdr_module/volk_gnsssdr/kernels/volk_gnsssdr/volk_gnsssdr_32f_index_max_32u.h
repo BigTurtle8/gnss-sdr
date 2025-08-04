@@ -539,43 +539,70 @@ static inline void volk_gnsssdr_32f_index_max_32u_neon(uint32_t* target, const f
 
 static inline void volk_gnsssdr_32f_index_max_32u_rvv(uint32_t* target, const float* src0, uint32_t num_points)
 {
+    // To make consistent with other implementations,
+    // do nothing if size of buffer is 0
     if (num_points == 0)
         {
             return;
         }
-    float max_val = src0[0];
-    uint32_t max_idx = 0;
-    size_t vl;
 
-    // Process in chunks
-    for (size_t i = 0; i < num_points; i += vl)
+    size_t n = num_points;
+
+    // Initialize pointer of correct type
+    // to keep track while strip mining
+    const float* inPtr = src0;
+
+    // max[0] = 0f
+    vfloat32m1_t maxVal = __riscv_vmfv_s_f_f32(inPtr[0], 1);
+
+    float prevMax = inPtr[0];
+
+    uint32_t maxI = 0;
+
+    // Note: See `volk_gnsssdr_8i_index_max_16u_rvv` for notes
+    // on possible optimization and current limitation of hardware.
+    for (size_t vl; n > 0; n -= vl, inPtr += vl * 4)
         {
-            // Set vector length for this iteration
-            vl = __riscv_vsetvl_e32m1(num_points - i);
+            // Record number of elements that will actually be processed
+            vl = __riscv_vsetvl_e32m8(n);
 
-            // Load vector of values
-            vfloat32m1_t v_vals = __riscv_vle32_v_f32m1(&src0[i], vl);
+            // Load in[0..vl)
+            vfloat32m8_t inVal = __riscv_vle32_v_f32m8(inPtr, vl);
 
-            // Process each element in the vector
-            for (size_t j = 0; j < vl; j++)
+            // max[0] = max( max[0], in[0..vl) )
+            maxVal = __riscv_vfmaxred_vs_f32m8_f32m1(inVal, maxVal, vl);
+            const float currMax = __riscv_vfmv_f_s_f32m1_f32(maxVal);
+
+            // If found new, larger max, find first index within that element
+            if (currMax > prevMax)
                 {
-                    float val = __riscv_vfmv_f_s_f32m1_f32(v_vals);
-                    if (val > max_val)
-                        {
-                            max_val = val;
-                            max_idx = i + j;
-                        }
-                    // Shift to next element by reloading
-                    if (j + 1 < vl)
-                        {
-                            v_vals = __riscv_vle32_v_f32m1(&src0[i + j + 1], vl - j - 1);
-                        }
+                    // maxTarget[i] = in[i] == max[0] ? 1 : 0
+                    vbool4_t maxTargetMask = __riscv_vmfeq_vf_f32m8_b4(
+                        inVal, currMax, vl
+                    );
+
+                    // maxTargetI = first set bit in maxTarget
+                    uint32_t maxTargetI = (uin32_t) __riscv_vfirst_m_b4(maxTargetMask, vl);
+                    // Cast is risky; keep an eye out
+
+                    uint32_t elapsedN = num_points - n;
+
+                    // Adjust index to correct spot in larger buffer
+                    maxI = maxTargetI + elapsedN;
+
+                    // Keep track of (now) previous sum
+                    prevMax = currMax;
                 }
+
+            // On looping, decrement the number of
+            // elements left and increase the pointers
+            // to account for the number of elements processed
+            // (taking into consideration element size)
         }
 
-    target[0] = max_idx;
+    *target = maxI;
 }
 
-#endif /* LV_HAVE_RVV */
+#endif /*LV_HAVE_RVV*/
 
 #endif /* INCLUDED_volk_gnsssdr_32f_index_max_32u_H */
