@@ -553,7 +553,7 @@ static inline void volk_gnsssdr_32f_index_max_32u_rvv(uint32_t* target, const fl
     const float* inPtr = src0;
 
     // max[0] = 0f
-    vfloat32m1_t maxVal = __riscv_vfmv_s_f_f32m8(inPtr[0], 1);
+    vfloat32m1_t maxVal = __riscv_vfmv_s_f_f32m1(inPtr[0], 1);
 
     float prevMax = inPtr[0];
 
