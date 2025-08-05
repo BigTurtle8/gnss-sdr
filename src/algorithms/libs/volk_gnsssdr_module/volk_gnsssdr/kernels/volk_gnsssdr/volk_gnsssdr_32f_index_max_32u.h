@@ -553,7 +553,7 @@ static inline void volk_gnsssdr_32f_index_max_32u_rvv(uint32_t* target, const fl
     const float* inPtr = src0;
 
     // max[0] = 0f
-    vfloat32m1_t maxVal = __riscv_vmfv_s_f_f32(inPtr[0], 1);
+    vfloat32m1_t maxVal = __riscv_vfmv_s_f_f32(inPtr[0], 1);
 
     float prevMax = inPtr[0];
 
@@ -570,7 +570,7 @@ static inline void volk_gnsssdr_32f_index_max_32u_rvv(uint32_t* target, const fl
             vfloat32m8_t inVal = __riscv_vle32_v_f32m8(inPtr, vl);
 
             // max[0] = max( max[0], in[0..vl) )
-            maxVal = __riscv_vfmaxred_vs_f32m8_f32m1(inVal, maxVal, vl);
+            maxVal = __riscv_vfredmax_vs_f32m8_f32m1(inVal, maxVal, vl);
             const float currMax = __riscv_vfmv_f_s_f32m1_f32(maxVal);
 
             // If found new, larger max, find first index within that element
@@ -582,7 +582,7 @@ static inline void volk_gnsssdr_32f_index_max_32u_rvv(uint32_t* target, const fl
                     );
 
                     // maxTargetI = first set bit in maxTarget
-                    uint32_t maxTargetI = (uin32_t) __riscv_vfirst_m_b4(maxTargetMask, vl);
+                    uint32_t maxTargetI = (uint32_t) __riscv_vfirst_m_b4(maxTargetMask, vl);
                     // Cast is risky; keep an eye out
 
                     uint32_t elapsedN = num_points - n;
