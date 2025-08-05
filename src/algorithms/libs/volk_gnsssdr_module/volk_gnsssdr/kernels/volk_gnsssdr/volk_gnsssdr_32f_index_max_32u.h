@@ -561,7 +561,7 @@ static inline void volk_gnsssdr_32f_index_max_32u_rvv(uint32_t* target, const fl
 
     // Note: See `volk_gnsssdr_8i_index_max_16u_rvv` for notes
     // on possible optimization and current limitation of hardware.
-    for (size_t vl; n > 0; n -= vl, inPtr += vl * 4)
+    for (size_t vl; n > 0; n -= vl, inPtr += vl)
         {
             // Record number of elements that will actually be processed
             vl = __riscv_vsetvl_e32m8(n);
@@ -597,7 +597,7 @@ static inline void volk_gnsssdr_32f_index_max_32u_rvv(uint32_t* target, const fl
             // On looping, decrement the number of
             // elements left and increase the pointers
             // to account for the number of elements processed
-            // (taking into consideration element size)
+            // (element size will automatically be handled)
         }
 
     *target = maxI;
