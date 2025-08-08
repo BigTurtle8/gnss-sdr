@@ -511,7 +511,7 @@ static inline void volk_gnsssdr_8ic_x2_dot_prod_8ic_rvv(lv_8sc_t* result, const 
         // length while having 6 register groups used at full
         // capacity (with 2 vector registers being used to
         // each store a single scalar)
-        vl = __riscv_setvl_e8m4(n);
+        vl = __riscv_vsetvl_e8m4(n);
 
         // Given that complex numbers are stored as
         // addr: aPtr    | aPtr + 1 | aPtr + 2 | aPtr + 3
@@ -552,7 +552,7 @@ static inline void volk_gnsssdr_8ic_x2_dot_prod_8ic_rvv(lv_8sc_t* result, const 
     // Real part of resultant complex number
     resPtr[0] = __riscv_vmv_x_s_i8m1_i8(accRealVal);
     // Complex part of resultant complex number
-    resPtr[1] = __riscv_vmv_x_s_18m1_i8(accImagVal);
+    resPtr[1] = __riscv_vmv_x_s_i8m1_i8(accImagVal);
 }
 #endif /* LV_HAVE_RVV */
 
