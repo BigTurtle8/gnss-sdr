@@ -201,7 +201,7 @@ static inline void volk_gnsssdr_8ic_magnitude_squared_8i_rvv(char* magnitudeVect
             // mag[i] = inReal[i] * inReal[i]
             vint8m4_t magVal = __riscv_vmul_vv_i8m4(inRealVal, inRealVal, vl);
 
-            // mag[i] = (inImag[i] * inImag[i]) + magVal[i]
+            // mag[i] = (inImag[i] * inImag[i]) + mag[i]
             magVal = __riscv_vmacc_vv_i8m4(magVal, inImagVal, inImagVal, vl);
 
             // Store mag[0..vl)
