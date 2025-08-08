@@ -327,10 +327,10 @@ static inline void volk_gnsssdr_8ic_x2_multiply_8ic_rvv(lv_8sc_t* cVector, const
         cImagVal = __riscv_vmacc_vv_i8m4(cImagVal, aImagVal, bRealVal, vl);
 
         // Store cReal[0..vl), cImag[0..vl)
-        vint8m4x2_t cVal = __riscv_vset_v_i8m4x2_i8m4(
+        vint8m4x2_t cVal = __riscv_vset_v_i8m4_i8m4x2(
             __riscv_vundefined_i8m4x2(), 0, cRealVal
         );
-        cVal = __riscv_vset_v_i8m4x2_i8m4(cVal, 1, cImagVal);
+        cVal = __riscv_vset_v_i8m4_i8m4x2(cVal, 1, cImagVal);
         __riscv_vsseg2e8_v_i8m4x2(cPtr, cVal, vl);
 
         // In looping, decrement the number of
