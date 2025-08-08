@@ -195,8 +195,8 @@ static inline void volk_gnsssdr_8ic_magnitude_squared_8i_rvv(char* magnitudeVect
 
             // Load inReal[0..vl), inImag[0..vl)
             vint8m4x2_t inVal = __riscv_vlseg2e8_v_i8m4x2(inPtr, vl);
-            vint8m4_t inRealVal = __riscv_vget_v_i8m4x2_i8m4(inPtr, 0);
-            vint8m4_t inImagVal = __riscv_vget_v_i8m4x2_i8m4(inPtr, 1);
+            vint8m4_t inRealVal = __riscv_vget_v_i8m4x2_i8m4(inVal, 0);
+            vint8m4_t inImagVal = __riscv_vget_v_i8m4x2_i8m4(inVal, 1);
 
             // mag[i] = inReal[i] * inReal[i]
             vint8m4_t magVal = __riscv_vmul_vv_i8m4(inRealVal, inRealVal, vl);
