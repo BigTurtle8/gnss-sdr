@@ -191,21 +191,21 @@ static inline void volk_gnsssdr_8ic_magnitude_squared_8i_rvv(char* magnitudeVect
     for (size_t vl; n > 0; n -= vl, outPtr += vl, inPtr += vl * 2)
         {
             // Record how many elements will actually be processed
-            vl = __riscv_vsetvl_e8m8(n);
+            vl = __riscv_vsetvl_e8m4(n);
 
             // Load inReal[0..vl), inImag[0..vl)
-            vint8m8x2_t inVal = __riscv_vlseg2e8_v_i8m8x2(inPtr, vl);
-            vint8m8_t inRealVal = __riscv_vget_v_i8m8x2_i8m8(inPtr, 0);
-            vint8m8_t inImagVal = __riscv_vget_v_i8m8x2_i8m8(inPtr, 1);
+            vint8m4x2_t inVal = __riscv_vlseg2e8_v_i8m4x2(inPtr, vl);
+            vint8m4_t inRealVal = __riscv_vget_v_i8m4x2_i8m4(inPtr, 0);
+            vint8m4_t inImagVal = __riscv_vget_v_i8m4x2_i8m4(inPtr, 1);
 
             // mag[i] = inReal[i] * inReal[i]
-            vint8m8_t magVal = __riscv_vmul_vv_i8m8(inRealVal, inRealVal, vl);
+            vint8m4_t magVal = __riscv_vmul_vv_i8m4(inRealVal, inRealVal, vl);
 
             // mag[i] = (inImag[i] * inImag[i]) + magVal[i]
-            magVal = __riscv_vmacc_vv_i8m8(magVal, inImagVal, inImagVal, vl);
+            magVal = __riscv_vmacc_vv_i8m4(magVal, inImagVal, inImagVal, vl);
 
             // Store mag[0..vl)
-            __riscv_vse8_v_i8m8(outPtr, magVal, vl);
+            __riscv_vse8_v_i8m4(outPtr, magVal, vl);
 
             // In looping, decrease the number of
             // elements left and increment the pointers
