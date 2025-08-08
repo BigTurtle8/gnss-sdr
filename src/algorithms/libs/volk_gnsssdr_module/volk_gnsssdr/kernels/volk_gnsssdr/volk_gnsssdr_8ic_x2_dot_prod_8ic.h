@@ -505,7 +505,7 @@ static inline void volk_gnsssdr_8ic_x2_dot_prod_8ic_rvv(lv_8sc_t* result, const 
     // accImag[0] = 0
     vint8m1_t accImagVal = __riscv_vmv_s_x_i8m1(0, 1);
 
-    for (size_t vl; n > 0; n -= vl, aPtr += vl, bPtr += vl) {
+    for (size_t vl; n > 0; n -= vl, aPtr += vl * 2, bPtr += vl * 2) {
         // Record how many elements will actually be processed
         // Using an EMUL of 4 so that can maximize vector group
         // length while having 6 register groups used at full
@@ -546,7 +546,11 @@ static inline void volk_gnsssdr_8ic_x2_dot_prod_8ic_rvv(lv_8sc_t* result, const 
 
         // In looping, decrement the number of
         // elements left and increment the pointers
-        // by the number of elements processed
+        // by the number of elements processed.
+        // However, have to account for how `vl`
+        // complex numbers are being loaded, meaning
+        // that `vl * 2` `signed char`s are being
+        // loaded from both `aPtr` and `bPtr`
     }
 
     // Real part of resultant complex number
