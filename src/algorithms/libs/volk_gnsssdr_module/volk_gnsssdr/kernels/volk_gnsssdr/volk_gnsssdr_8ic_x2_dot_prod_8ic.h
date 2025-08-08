@@ -61,14 +61,14 @@ static inline void volk_gnsssdr_8ic_x2_dot_prod_8ic_generic(lv_8sc_t* result, co
      *cPtr += (*aPtr++) * (*bPtr++);
      }*/
 
-    char* res = (char*)result;
-    char* in = (char*)in_a;
-    char* tp = (char*)in_b;
+    signed char* res = (signed char*)result;
+    signed char* in = (signed char*)in_a;
+    signed char* tp = (signed char*)in_b;
     unsigned int n_2_ccomplex_blocks = num_points / 2;
     unsigned int isodd = num_points & 1;
 
-    char sum0[2] = {0, 0};
-    char sum1[2] = {0, 0};
+    signed char sum0[2] = {0, 0};
+    signed char sum1[2] = {0, 0};
     unsigned int i = 0;
 
     for (i = 0; i < n_2_ccomplex_blocks; ++i)
