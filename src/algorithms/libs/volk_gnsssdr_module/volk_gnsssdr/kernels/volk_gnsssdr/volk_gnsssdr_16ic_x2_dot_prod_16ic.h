@@ -559,7 +559,7 @@ static inline void volk_gnsssdr_16ic_x2_dot_prod_16ic_neon_optvma(lv_16sc_t* out
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 
-static inline void volk_gnsssdr_16ic_x2_dot_prod_16ic_rvv(lv_16sc_t* result, const lv_16sc_t* in_a, const lv_16sc_t in_b, unsigned int num_points) {
+static inline void volk_gnsssdr_16ic_x2_dot_prod_16ic_rvv(lv_16sc_t* result, const lv_16sc_t* in_a, const lv_16sc_t* in_b, unsigned int num_points) {
     size_t n = num_points;
 
     // Explicitly cast in order to directly fill
@@ -575,7 +575,7 @@ static inline void volk_gnsssdr_16ic_x2_dot_prod_16ic_rvv(lv_16sc_t* result, con
     // accReal[0] = 0
     vint32m1_t accRealVal = __riscv_vmv_s_x_i32m1(0, 1);
     // accImag[0] = 0
-    vint32m1_t accImagVal = __ricsv_vmv_s_x_i32m1(0, 1);
+    vint32m1_t accImagVal = __riscv_vmv_s_x_i32m1(0, 1);
 
     for (size_t vl; n > 0; n -= vl, resPtr += vl * 2, aPtr += vl * 2, bPtr += vl * 2) {
         // Record how many elements will actually be processed
