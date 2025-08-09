@@ -567,15 +567,15 @@ static inline void volk_gnsssdr_16ic_x2_dot_prod_16ic_rvv(lv_16sc_t* result, con
     short* resPtr = (short*) result;
 
     // Initialize pointers to track progress as stripmine
-    const short* aPtr = (short*) in_a;
-    const short* bPtr = (short*) in_b;
+    const short* aPtr = (const short*) in_a;
+    const short* bPtr = (const short*) in_b;
 
     // Use 32-bit accumulator in order to saturate
     // to 16 bits
     // accReal[0] = 0
-    vint16m4_t accRealVal = __riscv_vmv_s_x_i32m1(0, 1);
+    vint32m1_t accRealVal = __riscv_vmv_s_x_i32m1(0, 1);
     // accImag[0] = 0
-    vint16m4_t accImagVal = __ricsv_vmv_s_x_i32m1(0, 1);
+    vint32m1_t accImagVal = __ricsv_vmv_s_x_i32m1(0, 1);
 
     for (size_t vl; n > 0; n -= vl, resPtr += vl * 2, aPtr += vl * 2, bPtr += vl * 2) {
         // Record how many elements will actually be processed
