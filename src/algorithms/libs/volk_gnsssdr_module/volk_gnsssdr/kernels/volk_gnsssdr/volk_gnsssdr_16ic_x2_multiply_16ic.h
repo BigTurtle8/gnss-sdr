@@ -340,7 +340,7 @@ static inline void volk_gnsssdr_16ic_x2_multiply_16ic_rvv(lv_16sc_t* result, con
 
     for (size_t vl; n > 0; n -= vl, resPtr += vl * 2, aPtr += vl * 2, bPtr += vl * 2) {
         // Record how many elements that will actually be processed
-        vl = __riscv_setvl_e16m4(n);
+        vl = __riscv_vsetvl_e16m4(n);
 
         // Load aReal[0..vl), aImag[0..vl)
         vint16m4x2_t aVal = __riscv_vlseg2e16_v_i16m4x2(aPtr, vl);
@@ -366,7 +366,7 @@ static inline void volk_gnsssdr_16ic_x2_multiply_16ic_rvv(lv_16sc_t* result, con
 
         // Store resReal[0..vl), resImag[0..vl)
         vint16m4x2_t resVal = __riscv_vset_v_i16m4_i16m4x2(
-            __riscv_vundefined_int16m4x2(), 0, resRealVal
+            __riscv_vundefined_i16m4x2(), 0, resRealVal
         );
         resVal = __riscv_vset_v_i16m4_i16m4x2(resVal, 1, resImagVal);
         __riscv_vsseg2e16_v_i16m4x2(resPtr, resVal, vl);
