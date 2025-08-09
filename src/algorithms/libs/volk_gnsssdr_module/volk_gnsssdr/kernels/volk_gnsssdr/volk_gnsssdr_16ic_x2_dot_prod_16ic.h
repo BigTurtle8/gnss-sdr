@@ -577,7 +577,7 @@ static inline void volk_gnsssdr_16ic_x2_dot_prod_16ic_rvv(lv_16sc_t* result, con
     // accImag[0] = 0
     vint32m1_t accImagVal = __riscv_vmv_s_x_i32m1(0, 1);
 
-    for (size_t vl; n > 0; n -= vl, resPtr += vl * 2, aPtr += vl * 2, bPtr += vl * 2) {
+    for (size_t vl; n > 0; n -= vl, aPtr += vl * 2, bPtr += vl * 2) {
         // Record how many elements will actually be processed
         vl = __riscv_vsetvl_e16m4(n);
 
