@@ -365,26 +365,23 @@ static inline void volk_gnsssdr_8ic_conjugate_8ic_rvv(lv_8sc_t* cVector, const l
     signed char* cPtr = (signed char*) cVector;
     const signed char* aPtr = (const signed char*) aVector;
 
-    // Helper constants for clarity
-    const size_t REAL_I = 0, IMAG_I = 1;
-
     for (size_t vl; n > 0; n -= vl, cPtr += vl * 2, aPtr += vl * 2) {
         // Record how many elements will actually be processed
         vl = __riscv_vsetvl_e8m4(n);
 
         // Load aReal[0..vl), aImag[0..vl)
         vint8m4x2_t aVal = __riscv_vlseg2e8_v_i8m4x2(aPtr, vl);
-        vint8m4_t aRealVal = __riscv_vget_v_i8m4x2_i8m4(aVal, REAL_I);
-        vint8m4_t aImagVal = __riscv_vget_v_i8m4x2_i8m4(aVal, IMAG_I);
+        vint8m4_t aRealVal = __riscv_vget_v_i8m4x2_i8m4(aVal, 0);
+        vint8m4_t aImagVal = __riscv_vget_v_i8m4x2_i8m4(aVal, 1);
 
         // negImag[i] = -aImag[0..vl)
         vint8m4_t negImagVal = __riscv_vneg_v_i8m4(aImagVal, vl);
 
         // Store aReal[0..vl), negImag[0..vl) into `cPtr`
         vint8m4x2_t cVal = __riscv_vset_v_i8m4_i8m4x2(
-            __riscv_vundefined_i8m4x2(), REAL_I, aRealVal
+            __riscv_vundefined_i8m4x2(), 0, aRealVal
         );
-        cVal = __riscv_vset_v_i8m4_i8m4x2(cVal, IMAG_I, negImagVal);
+        cVal = __riscv_vset_v_i8m4_i8m4x2(cVal, 1, negImagVal);
         __riscv_vsseg2e8_v_i8m4x2(cPtr, cVal, vl);
 
         // In looping, decrease the number of
