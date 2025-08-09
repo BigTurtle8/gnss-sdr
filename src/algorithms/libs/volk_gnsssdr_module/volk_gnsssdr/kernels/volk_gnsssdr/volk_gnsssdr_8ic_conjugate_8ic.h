@@ -376,7 +376,7 @@ static inline void volk_gnsssdr_8ic_conjugate_8ic_rvv(lv_8sc_t* cVector, const l
             vint8m4_t aRealVal = __riscv_vget_v_i8m4x2_i8m4(aVal, 0);
             vint8m4_t aImagVal = __riscv_vget_v_i8m4x2_i8m4(aVal, 1);
 
-            // negImag[i] = -aImag[0..vl)
+            // negImag[i] = -aImag[i]
             vint8m4_t negImagVal = __riscv_vneg_v_i8m4(aImagVal, vl);
 
             // Store aReal[0..vl), negImag[0..vl) into `cPtr`
