@@ -559,7 +559,8 @@ static inline void volk_gnsssdr_16ic_x2_dot_prod_16ic_neon_optvma(lv_16sc_t* out
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 
-static inline void volk_gnsssdr_16ic_x2_dot_prod_16ic_rvv(lv_16sc_t* result, const lv_16sc_t* in_a, const lv_16sc_t* in_b, unsigned int num_points) {
+static inline void volk_gnsssdr_16ic_x2_dot_prod_16ic_rvv(lv_16sc_t* result, const lv_16sc_t* in_a, const lv_16sc_t* in_b, unsigned int num_points)
+{
     size_t n = num_points;
 
     // Explicitly cast in order to directly fill
@@ -577,48 +578,49 @@ static inline void volk_gnsssdr_16ic_x2_dot_prod_16ic_rvv(lv_16sc_t* result, con
     // accImag[0] = 0
     vint32m1_t accImagVal = __riscv_vmv_s_x_i32m1(0, 1);
 
-    for (size_t vl; n > 0; n -= vl, aPtr += vl * 2, bPtr += vl * 2) {
-        // Record how many elements will actually be processed
-        vl = __riscv_vsetvl_e16m4(n);
+    for (size_t vl; n > 0; n -= vl, aPtr += vl * 2, bPtr += vl * 2)
+        {
+            // Record how many elements will actually be processed
+            vl = __riscv_vsetvl_e16m4(n);
 
-        // Load aReal[0..vl), aImag[0..vl)
-        vint16m4x2_t aVal = __riscv_vlseg2e16_v_i16m4x2(aPtr, vl);
-        vint16m4_t aRealVal = __riscv_vget_v_i16m4x2_i16m4(aVal, 0);
-        vint16m4_t aImagVal = __riscv_vget_v_i16m4x2_i16m4(aVal, 1);
+            // Load aReal[0..vl), aImag[0..vl)
+            vint16m4x2_t aVal = __riscv_vlseg2e16_v_i16m4x2(aPtr, vl);
+            vint16m4_t aRealVal = __riscv_vget_v_i16m4x2_i16m4(aVal, 0);
+            vint16m4_t aImagVal = __riscv_vget_v_i16m4x2_i16m4(aVal, 1);
 
-        // Load bReal[0..vl), bImag[0..vl)
-        vint16m4x2_t bVal = __riscv_vlseg2e16_v_i16m4x2(bPtr, vl);
-        vint16m4_t bRealVal = __riscv_vget_v_i16m4x2_i16m4(bVal, 0);
-        vint16m4_t bImagVal = __riscv_vget_v_i16m4x2_i16m4(bVal, 1);
+            // Load bReal[0..vl), bImag[0..vl)
+            vint16m4x2_t bVal = __riscv_vlseg2e16_v_i16m4x2(bPtr, vl);
+            vint16m4_t bRealVal = __riscv_vget_v_i16m4x2_i16m4(bVal, 0);
+            vint16m4_t bImagVal = __riscv_vget_v_i16m4x2_i16m4(bVal, 1);
 
-        // outReal[i] = -(aImag[i] * bImag[i]) + aReal[i] * bReal[i]
-        vint16m4_t outRealVal = __riscv_vmul_vv_i16m4(aRealVal, bRealVal, vl);
-        outRealVal = __riscv_vnmsac_vv_i16m4(outRealVal, aImagVal, bImagVal, vl);
+            // outReal[i] = -(aImag[i] * bImag[i]) + aReal[i] * bReal[i]
+            vint16m4_t outRealVal = __riscv_vmul_vv_i16m4(aRealVal, bRealVal, vl);
+            outRealVal = __riscv_vnmsac_vv_i16m4(outRealVal, aImagVal, bImagVal, vl);
 
-        // accReal[0] = sum( accReal[0], outReal[0..vl) )
-        accRealVal = __riscv_vwredsum_vs_i16m4_i32m1(outRealVal, accRealVal, vl);
+            // accReal[0] = sum( accReal[0], outReal[0..vl) )
+            accRealVal = __riscv_vwredsum_vs_i16m4_i32m1(outRealVal, accRealVal, vl);
 
-        // Saturate accReal[0] within 16 bits
-        accRealVal = __riscv_vmin_vx_i32m1(accRealVal, 32767, 1);
-        accRealVal = __riscv_vmax_vx_i32m1(accRealVal, -32768, 1);
+            // Saturate accReal[0] within 16 bits
+            accRealVal = __riscv_vmin_vx_i32m1(accRealVal, 32767, 1);
+            accRealVal = __riscv_vmax_vx_i32m1(accRealVal, -32768, 1);
 
-        // outImag[i] = (aImag[i] * bReal[i]) + aReal[i] * bImag[i]
-        vint16m4_t outImagVal = __riscv_vmul_vv_i16m4(aRealVal, bImagVal, vl);
-        outImagVal = __riscv_vmacc_vv_i16m4(outImagVal, aImagVal, bRealVal, vl);
+            // outImag[i] = (aImag[i] * bReal[i]) + aReal[i] * bImag[i]
+            vint16m4_t outImagVal = __riscv_vmul_vv_i16m4(aRealVal, bImagVal, vl);
+            outImagVal = __riscv_vmacc_vv_i16m4(outImagVal, aImagVal, bRealVal, vl);
 
-        // accImag[0] = sum( accImag[0], outImag[0..vl) )
-        accImagVal = __riscv_vwredsum_vs_i16m4_i32m1(outImagVal, accImagVal, vl);
+            // accImag[0] = sum( accImag[0], outImag[0..vl) )
+            accImagVal = __riscv_vwredsum_vs_i16m4_i32m1(outImagVal, accImagVal, vl);
 
-        // Saturate accImag[0] within 16 bits
-        accImagVal = __riscv_vmin_vx_i32m1(accImagVal, 32767, 1);
-        accImagVal = __riscv_vmax_vx_i32m1(accImagVal, -32768, 1);
+            // Saturate accImag[0] within 16 bits
+            accImagVal = __riscv_vmin_vx_i32m1(accImagVal, 32767, 1);
+            accImagVal = __riscv_vmax_vx_i32m1(accImagVal, -32768, 1);
 
-        // In looping, decrement the number of
-        // elements left and increment the pointers
-        // by the number of elements processed,
-        // taking into account how the `vl` complex
-        // numbers are each stored as 2 `short`s
-    }
+            // In looping, decrement the number of
+            // elements left and increment the pointers
+            // by the number of elements processed,
+            // taking into account how the `vl` complex
+            // numbers are each stored as 2 `short`s
+        }
 
     // Real part of resultant complex number
     resPtr[0] = (short) __riscv_vmv_x_s_i32m1_i32(accRealVal);
