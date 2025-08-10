@@ -267,7 +267,7 @@ static inline void volk_gnsssdr_16ic_x2_dotprodxnpuppet_16ic_rvv(lv_16sc_t* resu
             volk_gnsssdr_free(in_a[n]);
         }
     volk_gnsssdr_free(in_a);
-
 }
+#endif /* LV_HAVE_RVV */
 
 #endif  // INCLUDED_volk_gnsssdr_16ic_x2_dotprodxnpuppet_16ic_H
