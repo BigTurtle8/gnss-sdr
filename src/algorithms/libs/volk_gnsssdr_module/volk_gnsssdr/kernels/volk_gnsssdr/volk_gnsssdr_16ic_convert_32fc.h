@@ -285,8 +285,8 @@ static inline void volk_gnsssdr_16ic_convert_32fc_rvv(lv_32fc_t* outputVector, c
 
             // Load inReal[0..vl), inImag[0..vl)
             vint16m2x2_t inVal = __riscv_vlseg2e16_v_i16m2x2(inPtr, vl);
-            vint16m2_t inRealVal = __riscv_vget_v_i16m4x2_i16m4(inVal, 0);
-            vint16m2_t inImagVal = __riscv_vget_v_i16m4x2_i16m4(inVal, 1);
+            vint16m2_t inRealVal = __riscv_vget_v_i16m2x2_i16m4(inVal, 0);
+            vint16m2_t inImagVal = __riscv_vget_v_i16m2x2_i16m4(inVal, 1);
 
             // outReal[i] = (float) inReal[i]
             // outImag[i] = (float) inImag[i]
