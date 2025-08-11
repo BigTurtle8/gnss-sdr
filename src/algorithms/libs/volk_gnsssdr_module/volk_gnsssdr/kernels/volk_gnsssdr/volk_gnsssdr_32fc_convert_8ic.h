@@ -465,7 +465,7 @@ static inline void volk_gnsssdr_32fc_convert_8ic_rvv(lv_8sc_t* outputVector, con
     signed char* outPtr = (signed char*) outputVector;
     const float* inPtr = (const float*) inputVector;
 
-    for (size_t vl; n > 0; n += vl, outPtr += vl * 2, inPtr += vl * 2)
+    for (size_t vl; n > 0; n -= vl, outPtr += vl * 2, inPtr += vl * 2)
         {
             // Record how many elements will actually be processed
             vl = __riscv_vsetvl_e32m4(n);
