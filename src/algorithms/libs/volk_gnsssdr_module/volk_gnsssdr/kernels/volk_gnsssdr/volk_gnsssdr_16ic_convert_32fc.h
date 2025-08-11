@@ -281,7 +281,7 @@ static inline void volk_gnsssdr_16ic_convert_32fc_rvv(lv_32fc_t* outputVector, c
             // Record how many elements will actually be processed
             // Only use a EMUL of 2 so that when widen, EMUL = 4
             // which still allows a segment store with NFIELDS = 2
-            vl = __riscv_vsetvl_e16m2(vl);
+            vl = __riscv_vsetvl_e16m2(n);
 
             // Load inReal[0..vl), inImag[0..vl)
             vint16m2x2_t inVal = __riscv_vlseg2e16_v_i16m2x2(inPtr, vl);
