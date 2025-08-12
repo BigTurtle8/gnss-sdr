@@ -478,11 +478,11 @@ static inline void volk_gnsssdr_32fc_convert_8ic_rvv(lv_8sc_t* outputVector, con
             // p. 73 of RVV spec: Use `rod` (round-towards-odd)
             // before final desired rounding mode
             // outReal[i] = (signed char) inReal[i]
-            vfloat16m2_t tmpRealVal = __riscv_vfncvt_rod_f_f_w_i16m2(inRealVal, vl);
+            vfloat16m2_t tmpRealVal = __riscv_vfncvt_rod_f_f_w_f16m2(inRealVal, vl);
             vint8m1_t outRealVal = __riscv_vfncvt_x_f_w_i8m1(tmpRealVal, vl);
 
             // outImag[i] = (signed char) inImag[i]
-            vfloat16m2_t tmpImagVal = __riscv_vfncvt_rod_f_f_w_i16m2(inImagVal, vl);
+            vfloat16m2_t tmpImagVal = __riscv_vfncvt_rod_f_f_w_f16m2(inImagVal, vl);
             vint8m1_t outImagVal = __riscv_vfncvt_x_f_w_i8m1(tmpImagVal, vl);
 
             // Store outReal[0..vl), outImag[0..vl)
