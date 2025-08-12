@@ -475,13 +475,15 @@ static inline void volk_gnsssdr_32fc_convert_8ic_rvv(lv_8sc_t* outputVector, con
             vfloat32m4_t inRealVal = __riscv_vget_v_f32m4x2_f32m4(inVal, 0);
             vfloat32m4_t inImagVal = __riscv_vget_v_f32m4x2_f32m4(inVal, 1);
 
+            // p. 73 of RVV spec: Use `rod` (round-towards-odd)
+            // before final desired rounding mode
             // outReal[i] = (signed char) inReal[i]
-            vint16m2_t tmpRealVal = __riscv_vfncvt_rtz_x_f_w_i16m2(inRealVal, vl);
-            vint8m1_t outRealVal = __riscv_vncvt_x_x_w_i8m1(tmpRealVal, vl);
+            vfloat16m2_t tmpRealVal = __riscv_vfncvt_rod_f_f_w_i16m2(inRealVal, vl);
+            vint8m1_t outRealVal = __riscv_vfncvt_x_f_w_i8m1(tmpRealVal, vl);
 
             // outImag[i] = (signed char) inImag[i]
-            vint16m2_t tmpImagVal = __riscv_vfncvt_rtz_x_f_w_i16m2(inImagVal, vl);
-            vint8m1_t outImagVal = __riscv_vncvt_x_x_w_i8m1(tmpImagVal, vl);
+            vfloat16m2_t tmpImagVal = __riscv_vfncvt_rod_f_f_w_i16m2(inImagVal, vl);
+            vint8m1_t outImagVal = __riscv_vfncvt_x_f_w_i8m1(tmpImagVal, vl);
 
             // Store outReal[0..vl), outImag[0..vl)
             vint8m1x2_t outVal = __riscv_vset_v_i8m1_i8m1x2(
