@@ -477,13 +477,13 @@ static inline void volk_gnsssdr_32fc_convert_8ic_rvv(lv_8sc_t* outputVector, con
 
             // outReal[i] = (signed char) inReal[i]
             vint32m4_t tmp32RealVal = __riscv_vfcvt_x_f_v_i32m4(inRealVal, vl);
-            vint16m2_t tmp16RealVal = __riscv_vncvt_x_x_w_i16m2(tmp32RealVal, vl);
-            vint8m1_t outRealVal = __riscv_vncvt_x_x_w_i8m1(tmp16RealVal, vl);
+            vint16m2_t tmp16RealVal = __riscv_vnsra_wx_i16m2(tmp32RealVal, 0, vl);
+            vint8m1_t outRealVal = __riscv_vnsra_wx_i8m1(tmp16RealVal, 0, vl);
 
             // outImag[i] = (signed char) inImag[i]
             vint32m4_t tmp32ImagVal = __riscv_vfcvt_x_f_v_i32m4(inImagVal, vl);
-            vint16m2_t tmp16ImagVal = __riscv_vncvt_x_x_w_i16m2(tmp32ImagVal, vl);
-            vint8m1_t outImagVal = __riscv_vncvt_x_x_w_i8m1(tmp16ImagVal, vl);
+            vint16m2_t tmp16ImagVal = __riscv_vnsra_wx_i16m2(tmp32ImagVal, 0, vl);
+            vint8m1_t outImagVal = __riscv_vnsra_wx_i8m1(tmp16ImagVal, 0, vl);
 
             // Store outReal[0..vl), outImag[0..vl)
             vint8m1x2_t outVal = __riscv_vset_v_i8m1_i8m1x2(
