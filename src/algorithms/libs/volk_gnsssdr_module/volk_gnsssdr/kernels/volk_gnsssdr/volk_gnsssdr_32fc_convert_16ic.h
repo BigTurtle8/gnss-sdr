@@ -464,7 +464,7 @@ static inline void volk_gnsssdr_32fc_convert_16ic_generic(lv_16sc_t* outputVecto
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 
-static inline void volk_gnsssdr_32fc_convert_16ic_rvv(lv_8sc_t* outputVector, const lv_32fc_t* inputVector, unsigned int num_points)
+static inline void volk_gnsssdr_32fc_convert_16ic_rvv(lv_16sc_t* outputVector, const lv_32fc_t* inputVector, unsigned int num_points)
 {
     size_t n = num_points;
 
