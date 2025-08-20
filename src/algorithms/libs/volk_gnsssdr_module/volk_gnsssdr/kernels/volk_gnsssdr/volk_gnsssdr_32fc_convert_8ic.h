@@ -457,6 +457,22 @@ static inline void volk_gnsssdr_32fc_convert_8ic_neon(lv_8sc_t* outputVector, co
 
 static inline void volk_gnsssdr_32fc_convert_8ic_rvv(lv_8sc_t* outputVector, const lv_32fc_t* inputVector, unsigned int num_points)
 {
+    float* inputVectorPtr = (float*)inputVector;
+    int8_t* outputVectorPtr = (int8_t*)outputVector;
+    const float min_val = (float)INT8_MIN;
+    const float max_val = (float)INT8_MAX;
+    float aux;
+    unsigned int i;
+    for (i = 0; i < num_points * 2; i++)
+        {
+            aux = *inputVectorPtr++ * max_val;
+            if (aux > max_val)
+                aux = max_val;
+            else if (aux < min_val)
+                aux = min_val;
+            *outputVectorPtr++ = (int8_t)rintf(aux);
+        }
+    /*
     size_t n = num_points;
 
     // Initialize pointers to keep track as stripmine
@@ -499,6 +515,7 @@ static inline void volk_gnsssdr_32fc_convert_8ic_rvv(lv_8sc_t* outputVector, con
             // are each stored as two numbers of their
             // corresponding size.
         }
+    */
 }
 #endif /* LV_HAVE_RVV */
 
