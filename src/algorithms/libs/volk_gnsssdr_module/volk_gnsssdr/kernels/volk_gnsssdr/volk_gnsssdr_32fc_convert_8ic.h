@@ -493,8 +493,8 @@ static inline void volk_gnsssdr_32fc_convert_8ic_rvv(lv_8sc_t* outputVector, con
             vint8m1x2_t outVal = __riscv_vset_v_i8m1_i8m1x2(
                 __riscv_vundefined_i8m1x2(), 0, outRealVal
             );
-            outVal = __riscv_vset_v_i16m2_i16m2x2(outVal, 1, outImagVal);
-            __riscv_vsseg2e16_v_i16m2x2(outPtr, outVal, vl);
+            outVal = __riscv_vset_v_i8m1_i8m1x2(outVal, 1, outImagVal);
+            __riscv_vsseg2e8_v_i8m1x2(outPtr, outVal, vl);
 
             // In looping, decrement the number of
             // elements left and increment the pointers
