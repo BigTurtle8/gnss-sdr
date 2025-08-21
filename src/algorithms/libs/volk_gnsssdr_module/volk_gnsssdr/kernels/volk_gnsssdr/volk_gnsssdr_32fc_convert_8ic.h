@@ -511,8 +511,9 @@ static inline void volk_gnsssdr_32fc_convert_8ic_rvv(lv_8sc_t* outputVector, con
             // corresponding size.
         }
 
+    n = num_points;
     tmpPtr = tmpVector;
-    for (int i = 0; i < n * 2; n++, outPtr++, tmpPtr++) {
+    for (int i = 0; i < n * 2; i++) {
         outPtr[i] = (signed char) tmpPtr[i];
     }
 }
