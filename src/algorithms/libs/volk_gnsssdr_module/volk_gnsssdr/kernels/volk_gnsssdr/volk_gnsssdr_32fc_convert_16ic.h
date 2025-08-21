@@ -475,27 +475,25 @@ static inline void volk_gnsssdr_32fc_convert_16ic_rvv(lv_16sc_t* outputVector, c
     for (size_t vl; n > 0; n -= vl, outPtr += vl * 2, inPtr += vl * 2)
         {
             // Record how many elements will actually be processed
-            vl = __riscv_vsetvl_e32m4(n);
+            vl = __riscv_vsetvl_e32m2(n);
 
             // Load inReal[0..vl), inImag[0..vl)
-            vfloat32m4x2_t inVal = __riscv_vlseg2e32_v_f32m4x2(inPtr, vl);
-            vfloat32m4_t inRealVal = __riscv_vget_v_f32m4x2_f32m4(inVal, 0);
-            vfloat32m4_t inImagVal = __riscv_vget_v_f32m4x2_f32m4(inVal, 1);
+            vfloat32m2x2_t inVal = __riscv_vlseg2e32_v_f32m2x2(inPtr, vl);
+            vfloat32m2_t inRealVal = __riscv_vget_v_f32m2x2_f32m2(inVal, 0);
+            vfloat32m2_t inImagVal = __riscv_vget_v_f32m2x2_f32m2(inVal, 1);
 
             // outReal[i] = (short) inReal[i]
-            vint32m4_t tmpRealVal = __riscv_vfcvt_x_f_v_i32m4(inRealVal, vl);
-            vint16m2_t outRealVal = __riscv_vnsra_wx_i16m2(tmpRealVal, 0, vl);
+            vint16m1_t outRealVal = __riscv_vfncvt_x_f_w_i16m1(inRealVal, vl);
 
             // outImag[i] = (short) inImag[i]
-            vint32m4_t tmpImagVal = __riscv_vfcvt_x_f_v_i32m4(inImagVal, vl);
-            vint16m2_t outImagVal = __riscv_vnsra_wx_i16m2(tmpImagVal, 0, vl);
+            vint16m1_t outImagVal = __riscv_vfncvt_x_f_w_i16m1(inImagVal, vl);
 
             // Store outReal[0..vl), outImag[0..vl)
-            vint16m2x2_t outVal = __riscv_vset_v_i16m2_i16m2x2(
-                __riscv_vundefined_i16m2x2(), 0, outRealVal
+            vint16m1x2_t outVal = __riscv_vset_v_i16m1_i16m1x2(
+                __riscv_vundefined_i16m1x2(), 0, outRealVal
             );
-            outVal = __riscv_vset_v_i16m2_i16m2x2(outVal, 1, outImagVal);
-            __riscv_vsseg2e16_v_i16m2x2(outPtr, outVal, vl);
+            outVal = __riscv_vset_v_i16m1_i16m1x2(outVal, 1, outImagVal);
+            __riscv_vsseg2e16_v_i16m1x2(outPtr, outVal, vl);
 
             // In looping, decrement the number of
             // elements left and increment the pointers
