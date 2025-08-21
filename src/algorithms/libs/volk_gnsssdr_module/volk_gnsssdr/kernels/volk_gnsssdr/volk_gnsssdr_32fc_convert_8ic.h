@@ -465,7 +465,11 @@ static inline void volk_gnsssdr_32fc_convert_8ic_rvv(lv_8sc_t* outputVector, con
     signed char* outPtr = (signed char*) outputVector;
     const float* inPtr = (const float*) inputVector;
 
-    for (size_t vl; n > 0; n -= vl, outPtr += vl * 2, inPtr += vl * 2)
+    // Temporary buffer to keep short-sized values
+    short tmpVector[n * 2];
+    short* tmpPtr = tmpVector;
+
+    for (size_t vl; n > 0; n -= vl, tmpPtr += vl * 2, inPtr += vl * 2)
         {
             // Record how many elements will actually be processed
             vl = __riscv_vsetvl_e32m4(n);
@@ -478,21 +482,26 @@ static inline void volk_gnsssdr_32fc_convert_8ic_rvv(lv_8sc_t* outputVector, con
             // outReal[i] = (signed char) inReal[i]
             //vint32m4_t tmp32RealVal = __riscv_vfcvt_x_f_v_i32m4(inRealVal, vl);
             //vint16m2_t tmp16RealVal = __riscv_vnsra_wx_i16m2(tmp32RealVal, 0, vl);
-            vint16m2_t tmp16RealVal = __riscv_vfncvt_x_f_w_i16m2(inRealVal, vl);
-            vint8m1_t outRealVal = __riscv_vnsra_wx_i8m1(tmp16RealVal, 0, vl);
+            //vint16m2_t tmp16RealVal = __riscv_vfncvt_x_f_w_i16m2(inRealVal, vl);
+            // outReal[i] = (short) inReal[i]
+            vint16m2_t tmpRealVal = __riscv_vfncvt_x_f_w_i16m2(inRealVal, vl);
+            //vint8m1_t outRealVal = __riscv_vnsra_wx_i8m1(tmp16RealVal, 0, vl);
 
             // outImag[i] = (signed char) inImag[i]
             //vint32m4_t tmp32ImagVal = __riscv_vfcvt_x_f_v_i32m4(inImagVal, vl);
             //vint16m2_t tmp16ImagVal = __riscv_vnsra_wx_i16m2(tmp32ImagVal, 0, vl);
-            vint16m2_t tmp16ImagVal = __riscv_vfncvt_x_f_w_i16m2(inImagVal, vl);
-            vint8m1_t outImagVal = __riscv_vnsra_wx_i8m1(tmp16ImagVal, 0, vl);
+            //vint16m2_t tmp16ImagVal = __riscv_vfncvt_x_f_w_i16m2(inImagVal, vl);
+            // outImag[i] = (short) inImag[i]
+            vint16m2_t tmpImagVal = __riscv_vfncvt_x_f_w_i16m2(inImagVal, vl);
+            //vint8m1_t outImagVal = __riscv_vnsra_wx_i8m1(tmp16ImagVal, 0, vl);
 
             // Store outReal[0..vl), outImag[0..vl)
-            vint8m1x2_t outVal = __riscv_vset_v_i8m1_i8m1x2(
-                __riscv_vundefined_i8m1x2(), 0, outRealVal
+            // Store tmpReal[0..vl), tmpImag[0..vl)
+            vint16m2x2_t tmpVal = __riscv_vset_v_i16m2_i16m2x2(
+                __riscv_vundefined_i16m2x2(), 0, tmpRealVal
             );
-            outVal = __riscv_vset_v_i8m1_i8m1x2(outVal, 1, outImagVal);
-            __riscv_vsseg2e8_v_i8m1x2(outPtr, outVal, vl);
+            tmpVal = __riscv_vset_v_i16m2_i16m2x2(tmpVal, 1, tmpImagVal);
+            __riscv_vsseg2e16_v_i16m2x2(tmpPtr, tmpVal, vl);
 
             // In looping, decrement the number of
             // elements left and increment the pointers
@@ -501,6 +510,11 @@ static inline void volk_gnsssdr_32fc_convert_8ic_rvv(lv_8sc_t* outputVector, con
             // are each stored as two numbers of their
             // corresponding size.
         }
+
+    tmpPtr = tmpVector;
+    for (int i = 0; i < n * 2; n++, outPtr++, tmpPtr++) {
+        outPtr[i] = (signed char) tmpPtr[i];
+    }
 }
 #endif /* LV_HAVE_RVV */
 
