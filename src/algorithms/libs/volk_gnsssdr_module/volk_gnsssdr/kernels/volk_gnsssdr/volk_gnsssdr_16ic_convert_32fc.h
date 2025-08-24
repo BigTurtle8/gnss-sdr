@@ -270,7 +270,9 @@ static inline void volk_gnsssdr_16ic_convert_32fc_neon(lv_32fc_t* outputVector, 
 
 static inline void volk_gnsssdr_16ic_convert_32fc_rvv(lv_32fc_t* outputVector, const lv_16sc_t* inputVector, unsigned int num_points)
 {
-    size_t n = num_points;
+    // Will be converting by number, with each
+    // complex number containing two component numbers
+    size_t n = num_points * 2;
 
     // Initialize pointers to keep track as stripmine
     float* outPtr = (float*) outputVector;
