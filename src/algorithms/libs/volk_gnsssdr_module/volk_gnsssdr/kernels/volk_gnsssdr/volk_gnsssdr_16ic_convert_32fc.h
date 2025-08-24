@@ -276,7 +276,7 @@ static inline void volk_gnsssdr_16ic_convert_32fc_rvv(lv_32fc_t* outputVector, c
     float* outPtr = (float*) outputVector;
     const short* inPtr = (const short*) inputVector;
 
-    for (size_t vl; n > 0; n -= vl, outPtr += vl * 2, inPtr += vl * 2)
+    for (size_t vl; n > 0; n -= vl, outPtr += vl, inPtr += vl)
         {
             // Record how many elements will actually be processed
             // Only use a EMUL of 4 so that when widen, EMUL = 8
