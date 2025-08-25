@@ -641,7 +641,7 @@ static inline void volk_gnsssdr_16ic_xn_resampler_16ic_xn_rvv(lv_16sc_t** result
             vint32m8_t outVal = __riscv_vluxei32_v_i32m8(inPtr, offsetVal, vl);
 
             // Store out[0..vl)
-            __riscv_vse16_v_i32m8(outPtr, outVal, vl);
+            __riscv_vse32_v_i32m8(outPtr, outVal, vl);
 
             // In looping, decrement the number of
             // elements left and increment stripmining pointers
