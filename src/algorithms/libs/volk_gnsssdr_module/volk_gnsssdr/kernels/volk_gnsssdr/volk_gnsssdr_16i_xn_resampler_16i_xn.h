@@ -619,7 +619,7 @@ static inline void volk_gnsssdr_16i_xn_resampler_16i_xn_rvv(int16_t** result, co
                     // `local_code_chip_index` should be some positive, valid
                     // index to `local_code`
                     // Convert from index to raw address offset
-                    offsetBuffer[i] = (unsigned int) (local_code_chip_index * 4);
+                    offsetBuffer[i] = (unsigned int) (local_code_chip_index * 2);
                 }
 
             size_t n = num_points;
