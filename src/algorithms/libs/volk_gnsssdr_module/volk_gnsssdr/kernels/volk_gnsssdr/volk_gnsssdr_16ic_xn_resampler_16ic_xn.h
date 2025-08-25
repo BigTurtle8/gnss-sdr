@@ -625,8 +625,8 @@ static inline void volk_gnsssdr_16ic_xn_resampler_16ic_xn_rvv(lv_16sc_t** result
         size_t n = num_points;
 
         // Initialize pointers to track progress as stripmine
-        int* outPtr = result[current_correlator_tap];
-        const int* inPtr = local_code;
+        int* outPtr = (int*) result[current_correlator_tap];
+        const int* inPtr = (const int*) local_code;
         const unsigned int* offsetPtr = (const unsigned int*) offsetBuffer;
 
         for (size_t vl; n > 0; n -= vl, outPtr += vl, offsetPtr += vl) {
