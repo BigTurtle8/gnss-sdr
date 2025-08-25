@@ -620,7 +620,7 @@ static inline void volk_gnsssdr_32f_xn_resampler_32f_xn_rvv(float** result, cons
             // `local_code_chip_index` should be some positive, valid
             // index to `local_code`
             // Convert from index to raw address offset
-            offsetBuffer[i] = (unsigned int) local_code_chip_index * 4;
+            offsetBuffer[i] = (unsigned int) (local_code_chip_index * 4);
         }
 
         size_t n = num_points;
@@ -630,7 +630,7 @@ static inline void volk_gnsssdr_32f_xn_resampler_32f_xn_rvv(float** result, cons
         const float* inPtr = local_code;
         const unsigned int* offsetPtr = (const unsigned int*) offsetBuffer;
 
-        for (size_t vl; n > 0; n -= vl, outPtr += vl, inPtr += vl, offsetPtr += vl) {
+        for (size_t vl; n > 0; n -= vl, outPtr += vl, offsetPtr += vl) {
             // Record how many data elements will actually be processed
             vl = __riscv_vsetvl_e32m8(n);
 
@@ -645,8 +645,8 @@ static inline void volk_gnsssdr_32f_xn_resampler_32f_xn_rvv(float** result, cons
             __riscv_vse32_v_f32m8(outPtr, outVal, vl);
 
             // In looping, decrement the number of
-            // elements left and increment the pointers
-            // by the number of elements processed.
+            // elements left and increment stripmining pointers
+            // by the number of elements processed
         }
     }
 }
