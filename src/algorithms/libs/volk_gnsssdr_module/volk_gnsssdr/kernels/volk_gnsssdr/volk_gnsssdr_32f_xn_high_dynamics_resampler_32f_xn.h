@@ -722,7 +722,7 @@ static inline void volk_gnsssdr_32f_xn_high_dynamics_resampler_32f_xn_rvv(float*
             // iterIndex[i] = +(( floatI[i] ^ 2 ) * code_phase_rate_step_chips) + iterIndex[i]
             vfloat32m8_t iterIndexVal = __riscv_vfmul_vf_f32m8(floatIVal, code_phase_step_chips, vl);
             vfloat32m8_t floatISqVal = __riscv_vfmul_vv_f32m8(floatIVal, floatIVal, vl);
-            iterIndexVal = __riscv_vfmacc_vf_f32m8(iterIndexVal, floatIVal, code_phase_rate_step_chips, vl);
+            iterIndexVal = __riscv_vfmacc_vf_f32m8(iterIndexVal, code_phase_rate_step_chips, floatISqVal, vl);
 
             // overflowIndex[i] = (int) floor(iterIndex[i] + constIndexShift)
             vfloat32m8_t shiftedIndexVal = __riscv_vfadd_vf_f32m8(iterIndexVal, constIndexShift, vl);
