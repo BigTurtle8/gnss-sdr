@@ -607,9 +607,11 @@ static inline void volk_gnsssdr_16i_xn_resampler_16i_xn_rvv(int16_t** result, co
 
     for (int current_correlator_tap = 0; current_correlator_tap < num_out_vectors; current_correlator_tap++)
         {
-            // Stores address offsets from `local_code` to load from and
-            // then store in `result[current_correlator_tap]`
-            unsigned int offsetBuffer[num_points];
+            // Stores indices for `local_code` to load from and
+            // then store in `result[current_correlator_tap`
+            // These indices may overflow and will wrap into
+            // a valid range later
+            unsigned int overflowIndexBuffer[num_points];
 
             for (int i = 0; i < num_points; i++)
                 {
@@ -617,21 +619,17 @@ static inline void volk_gnsssdr_16i_xn_resampler_16i_xn_rvv(int16_t** result, co
                     int local_code_chip_index = (int)floor(code_phase_step_chips * (float)i + shifts_chips[current_correlator_tap] - rem_code_phase_chips);
                     // Take into account that in multitap correlators, the shifts can be negative!
                     if (local_code_chip_index < 0) local_code_chip_index += (int)code_length_chips * (abs(local_code_chip_index) / code_length_chips + 1);
-                    local_code_chip_index = local_code_chip_index % code_length_chips;
 
-                    // `local_code_chip_index` should be some positive, valid
-                    // index to `local_code`
-                    // Convert from index to raw address offset
-                    offsetBuffer[i] = (unsigned int) (local_code_chip_index * 2);
+                    overflowIndexBuffer[i] = (unsigned int) local_code_chip_index;
                 }
 
             size_t n = num_points;
 
             // Initialize pointers to track progress as stripmine
             int16_t* outPtr = result[current_correlator_tap];
-            const unsigned int* offsetPtr = (const unsigned int*) offsetBuffer;
+            const unsigned int* overflowIndexPtr = (const unsigned int*) overflowIndexBuffer;
 
-            for (size_t vl; n > 0; n -= vl, outPtr += vl, offsetPtr += vl)
+            for (size_t vl; n > 0; n -= vl, outPtr += vl, overflowIndexPtr += vl)
                 {
                     // Use LMUL of 4 since EEW/SEW of indexed load is 2,
                     // meaning that to use u32 as indices to load
@@ -639,8 +637,16 @@ static inline void volk_gnsssdr_16i_xn_resampler_16i_xn_rvv(int16_t** result, co
                     // Record how many data elements will actually be processed
                     vl = __riscv_vsetvl_e16m4(n);
 
-                    // Load offset[0..vl)
-                    vuint32m8_t offsetVal = __riscv_vle32_v_u32m8(offsetPtr, vl);
+                    // Load overflowIndex[0..vl)
+                    vuint32m8_t overflowIndexVal = __riscv_vle32_v_u32m8(overflowIndexPtr, vl);
+
+                    // Wrap to valid index in `local_code`
+                    // index[i] = overflowIndex[i] % code_length_chips
+                    vuint32m8_t indexVal = __riscv_vremu_vx_u32m8(overflowIndexVal, code_length_chips, vl);
+
+                    // Convert to address offset
+                    // offset[i] = index[i] * sizeof(int16_t)
+                    vuint32m8_t offsetVal = __riscv_vmul_vx_u32m8(indexVal, sizeof(int16_t), vl);
 
                     // This indexed load is unordered to hopefully boost run time
                     // out[i] = in[offset[i]]
