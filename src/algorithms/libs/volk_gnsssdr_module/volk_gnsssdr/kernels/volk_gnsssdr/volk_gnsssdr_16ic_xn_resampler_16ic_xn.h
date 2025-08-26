@@ -614,7 +614,7 @@ static inline void volk_gnsssdr_16ic_xn_resampler_16ic_xn_rvv(lv_16sc_t** result
             const float constIndexShift = shifts_chips[current_correlator_tap] - rem_code_phase_chips;
 
             // Initialize pointers to track progress as stripmine
-            int* outPtr = result[current_correlator_tap];
+            int* outPtr = (int*) result[current_correlator_tap];
             // Simulates how, compared to generic implementation, `i` continues
             // increasing across different vector computatation batches
             unsigned int currI = 0;

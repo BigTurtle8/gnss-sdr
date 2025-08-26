@@ -773,7 +773,7 @@ static inline void volk_gnsssdr_32fc_xn_resampler_32fc_xn_rvv(lv_32fc_t** result
             const float constIndexShift = shifts_chips[current_correlator_tap] - rem_code_phase_chips;
 
             // Initialize pointers to track progress as stripmine
-            long* outPtr = result[current_correlator_tap];
+            long* outPtr = (long*) result[current_correlator_tap];
             // Simulates how, compared to generic implementation, `i` continues
             // increasing across different vector computatation batches
             unsigned int currI = 0;
@@ -781,29 +781,29 @@ static inline void volk_gnsssdr_32fc_xn_resampler_32fc_xn_rvv(lv_32fc_t** result
             for (size_t vl; n > 0; n -= vl, outPtr += vl, currI += vl)
                 {
                     // Record how many data elements will actually be processed
-                    vl = __riscv_vsetvl_e32m8(n);
+                    vl = __riscv_vsetvl_e64m8(n);
 
                     // floatI[i] = (float) (i + currI)
-                    vuint32m8_t idVal = __riscv_vid_v_u32m8(vl);
-                    vuint32m8_t iVal = __riscv_vadd_vx_u32m8(idVal, currI, vl);
-                    vfloat32m8_t floatIVal = __riscv_vfcvt_f_xu_v_f32m8(iVal, vl);
+                    vuint32m4_t idVal = __riscv_vid_v_u32m4(vl);
+                    vuint32m4_t iVal = __riscv_vadd_vx_u32m4(idVal, currI, vl);
+                    vfloat32m4_t floatIVal = __riscv_vfcvt_f_xu_v_f32m4(iVal, vl);
 
                     // iterIndex[i] = floatIVal[i] * code_phase_step_chips
-                    vfloat32m8_t iterIndexVal = __riscv_vfmul_vf_f32m8(floatIVal, code_phase_step_chips, vl);
+                    vfloat32m4_t iterIndexVal = __riscv_vfmul_vf_f32m4(floatIVal, code_phase_step_chips, vl);
 
                     // overflowIndex[i] = (int) floor(iterIndex[i] + constIndexShift)
-                    vfloat32m8_t shiftedIndexVal = __riscv_vfadd_vf_f32m8(iterIndexVal, constIndexShift, vl);
-                    vint32m8_t overflowIndexVal = __riscv_vfcvt_x_f_v_i32m8_rm(shiftedIndexVal, __RISCV_FRM_RDN, vl);
+                    vfloat32m4_t shiftedIndexVal = __riscv_vfadd_vf_f32m4(iterIndexVal, constIndexShift, vl);
+                    vint32m4_t overflowIndexVal = __riscv_vfcvt_x_f_v_i32m4_rm(shiftedIndexVal, __RISCV_FRM_RDN, vl);
 
                     // Wrap to valid index in `local_code`, handling negative values
                     // index[i] = ( code_length_chips + ( overflowIndex[i] % code_length_chips ) ) % code_length_chips
-                    vint32m8_t indexVal = __riscv_vrem_vx_i32m8(overflowIndexVal, code_length_chips, vl);
-                    indexVal = __riscv_vadd_vx_i32m8(indexVal, code_length_chips, vl);
-                    indexVal = __riscv_vrem_vx_i32m8(indexVal, code_length_chips, vl);
+                    vint32m4_t indexVal = __riscv_vrem_vx_i32m4(overflowIndexVal, code_length_chips, vl);
+                    indexVal = __riscv_vadd_vx_i32m4(indexVal, code_length_chips, vl);
+                    indexVal = __riscv_vrem_vx_i32m4(indexVal, code_length_chips, vl);
 
                     // After above, should now be guaranteed positive and valid index
                     // finalIndex[i] = (unsigned int) index[i];
-                    vuint32m8_t finalIndexVal = __riscv_vreinterpret_v_i32m8_u32m8(indexVal);
+                    vuint32m4_t finalIndexVal = __riscv_vreinterpret_v_i32m4_u32m4(indexVal);
 
                     // Convert to address offset
                     // offset[i] = finalIndex[i] * sizeof(float)
