@@ -647,7 +647,7 @@ static inline void volk_gnsssdr_16ic_xn_resampler_16ic_xn_rvv(lv_16sc_t** result
                     vuint32m8_t finalIndexVal = __riscv_vreinterpret_v_i32m8_u32m8(indexVal);
 
                     // Convert to address offset
-                    // offset[i] = finalIndex[i] * sizeof(float)
+                    // offset[i] = finalIndex[i] * sizeof(lv_16sc_t)
                     vuint32m8_t offsetVal = __riscv_vmul_vx_u32m8(finalIndexVal, sizeof(lv_16sc_t), vl);
 
                     // This indexed load is unordered to hopefully boost run time
