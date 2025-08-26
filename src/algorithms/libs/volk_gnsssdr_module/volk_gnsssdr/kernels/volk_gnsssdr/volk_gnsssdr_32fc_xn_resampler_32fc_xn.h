@@ -770,7 +770,9 @@ static inline void volk_gnsssdr_32fc_xn_resampler_32fc_xn_rvv(lv_32fc_t** result
         {
             // Stores address offsets from `local_code` to load from and
             // then store in `result[current_correlator_tap]`
-            unsigned int offsetBuffer[num_points];
+            // These indices may overflow and will wrap into
+            // a valid range later
+            unsigned int overflowIndexBuffer[num_points];
 
             for (int i = 0; i < num_points; i++)
                 {
@@ -778,27 +780,31 @@ static inline void volk_gnsssdr_32fc_xn_resampler_32fc_xn_rvv(lv_32fc_t** result
                     int local_code_chip_index = (int)floor(code_phase_step_chips * (float)i + shifts_chips[current_correlator_tap] - rem_code_phase_chips);
                     // Take into account that in multitap correlators, the shifts can be negative!
                     if (local_code_chip_index < 0) local_code_chip_index += (int)code_length_chips * (abs(local_code_chip_index) / code_length_chips + 1);
-                    local_code_chip_index = local_code_chip_index % code_length_chips;
 
-                    // `local_code_chip_index` should be some positive, valid
-                    // index to `local_code`
-                    // Convert from index to raw address offset
-                    offsetBuffer[i] = (unsigned int) (local_code_chip_index * 8);
+                    overflowIndexBuffer[i] = (unsigned int) local_code_chip_index;
                 }
 
             size_t n = num_points;
 
             // Initialize pointers to track progress as stripmine
             long* outPtr = (long*) result[current_correlator_tap];
-            const unsigned int* offsetPtr = (const unsigned int*) offsetBuffer;
+            const unsigned int* overflowIndexPtr = (const unsigned int*) overflowIndexBuffer;
 
             for (size_t vl; n > 0; n -= vl, outPtr += vl, offsetPtr += vl)
                 {
                     // Record how many elements will actually be processed
                     vl = __riscv_vsetvl_e64m8(n);
 
-                    // Load offset[0..vl)
-                    vuint32m4_t offsetVal = __riscv_vle32_v_u32m4(offsetPtr, vl);
+                    // Load overflowIndex[0..vl)
+                    vuint32m4_t overflowIndexVal = __riscv_vle32_v_u32m4(overflowIndexPtr, vl);
+
+                    // Wrap to valid index in `local_code`
+                    // index[i] = overflowIndex[i] % code_length_chips
+                    vuint32m4_t indexVal = __riscv_vremu_vx_u32m4(overflowIndexVal, code_length_chips, vl);
+
+                    // Convert to address offset
+                    // offset[i] = index[i] * sizeof(lv_32fc_t)
+                    vuint32m4_t offsetVal = __riscv_vmul_vx_u32m4(indexVal, sizeof(lv_32fc_t), vl);
 
                     // This indexed load is unordered to hopefully boost run time
                     // out[i] = in[offset[i]]
