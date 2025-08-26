@@ -607,24 +607,6 @@ static inline void volk_gnsssdr_16i_xn_resampler_16i_xn_rvv(int16_t** result, co
 
     for (int current_correlator_tap = 0; current_correlator_tap < num_out_vectors; current_correlator_tap++)
         {
-            /*
-            // Stores indices for `local_code` to load from and
-            // then store in `result[current_correlator_tap`
-            // These indices may overflow and will wrap into
-            // a valid range later
-            unsigned int overflowIndexBuffer[num_points];
-
-            for (int i = 0; i < num_points; i++)
-                {
-                    // resample code for current tap
-                    int local_code_chip_index = (int)floor(code_phase_step_chips * (float)i + shifts_chips[current_correlator_tap] - rem_code_phase_chips);
-                    // Take into account that in multitap correlators, the shifts can be negative!
-                    if (local_code_chip_index < 0) local_code_chip_index += (int)code_length_chips * (abs(local_code_chip_index) / code_length_chips + 1);
-
-                    overflowIndexBuffer[i] = (unsigned int) local_code_chip_index;
-                }
-            */
-
             size_t n = num_points;
 
             const float constIndexShift = shifts_chips[current_correlator_tap] - rem_code_phase_chips;
