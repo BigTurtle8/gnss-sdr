@@ -387,9 +387,9 @@ static inline void volk_gnsssdr_16ic_xn_resampler_fast_16ic_xn_rvv(lv_16sc_t** r
     // Initialize variable to clearer, applicable type
     int code_len = (int) code_length_chips;
 
-    for (current_vector = 0; current_vector < num_out_vectors; current_vector++)
+    for (int current_vector = 0; current_vector < num_out_vectors; current_vector++)
         {
-            size_t n = num_output_samples;
+            size_t n = num_out_samples;
 
             const float constIndexShift = rem_code_phase_chips[current_vector];
 
