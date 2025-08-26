@@ -690,7 +690,7 @@ static inline void volk_gnsssdr_32f_xn_high_dynamics_resampler_32f_xn_u_avx(floa
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 
-static inline void volk_gnsssdr_32f_xn_high_dynamics_resampler_32f_rvv(float** result, const float* local_code, float rem_code_phase_chips, float code_phase_step_chips, float code_phase_rate_step_chips, float* shifts_chips, unsigned int code_length_chips, int num_out_vectors, unsigned int num_points)
+static inline void volk_gnsssdr_32f_xn_high_dynamics_resampler_32f_xn_rvv(float** result, const float* local_code, float rem_code_phase_chips, float code_phase_step_chips, float code_phase_rate_step_chips, float* shifts_chips, unsigned int code_length_chips, int num_out_vectors, unsigned int num_points)
 {
     // To make easier to work with in RVV, just interpret the two 32-bit components
     // of each complex number as a single 64-bit number to move around
