@@ -334,7 +334,7 @@ static inline void volk_gnsssdr_16ic_resampler_fast_16ic_neon(lv_16sc_t* result,
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 
-static inline void volk_gnsssdr_16ic_resampler_fast_16ic_rvv(lv_16sc_t result, const lv_16sc_t* local_code, float rem_code_phase_chips, float code_phase_step_chips, int code_length_chips, unsigned int num_output_samples)
+static inline void volk_gnsssdr_16ic_resampler_fast_16ic_rvv(lv_16sc_t* result, const lv_16sc_t* local_code, float rem_code_phase_chips, float code_phase_step_chips, int code_length_chips, unsigned int num_output_samples)
 {
     // To make easier to work with in RVV, just interpret the two 16-bit components
     // of each complex number as a single 32-bit number to move around
@@ -342,7 +342,7 @@ static inline void volk_gnsssdr_16ic_resampler_fast_16ic_rvv(lv_16sc_t result, c
     // Initialize reference pointer, as stays same and not stripmined
     const int* inPtr = (const int*) local_code;
 
-    size_t n = num_points;
+    size_t n = num_output_samples;
 
     const float constIndexShift = rem_code_phase_chips;
 
@@ -358,7 +358,7 @@ static inline void volk_gnsssdr_16ic_resampler_fast_16ic_rvv(lv_16sc_t result, c
         vl = __riscv_vsetvl_e32m8(n);
 
         // floatI[i] = (float) (i + currI);
-        vuint32m8_t idVal = __riscv_vid_u32m8(vl);
+        vuint32m8_t idVal = __riscv_vid_v_u32m8(vl);
         vuint32m8_t iVal = __riscv_vadd_vx_u32m8(idVal, currI, vl);
         vfloat32m8_t floatIVal = __riscv_vfcvt_f_xu_v_f32m8(iVal, vl);
 
@@ -382,11 +382,11 @@ static inline void volk_gnsssdr_16ic_resampler_fast_16ic_rvv(lv_16sc_t result, c
         // index[i] = overflowIndex[i]
         // index[i] = index[i] < 0 ? index[i] + code_length_chips : index[i]
         // index[i] = index[i] > (code_length_chips - 1) ? index[i] - code_length_chips : index[i]
-        vin32m8_t indexVal = overflowIndexVal;
+        vint32m8_t indexVal = overflowIndexVal;
         vbool4_t indexMaskVal = __riscv_vmslt_vx_i32m8_b4(indexVal, 0, vl);
-        vint32m8_t indexVal = __riscv_vadd_vx_i32m8_mu(indexMaskVal, indexVal, code_length_chips, vl);
+        indexVal = __riscv_vadd_vx_i32m8_mu(indexMaskVal, indexVal, indexVal, code_length_chips, vl);
         indexMaskVal = __riscv_vmsgt_vx_i32m8_b4(indexVal, code_length_chips - 1, vl);
-        indexVal = __riscv_vsub_vx_i32m8_mu(indexMaskVal, indexVal, code_length_chips, vl);
+        indexVal = __riscv_vsub_vx_i32m8_mu(indexMaskVal, indexVal, indexVal, code_length_chips, vl);
 
         // After above, should now be guaranteed positive and valid index
         // finalIndex[i] = (unsigned int) index[i]
@@ -398,7 +398,7 @@ static inline void volk_gnsssdr_16ic_resampler_fast_16ic_rvv(lv_16sc_t result, c
 
         // This indexed load is unordered to hopefully boost run time
         // out[i] = in[offset[i]]
-        vuint32m8_t outVal = __riscv_vluxei32_v_i32m8(inPtr, offsetVal, vl);
+        vint32m8_t outVal = __riscv_vluxei32_v_i32m8(inPtr, offsetVal, vl);
 
         // Store out[0..vl)
         __riscv_vse32_v_i32m8(outPtr, outVal, vl);
