@@ -632,7 +632,7 @@ static inline void volk_gnsssdr_32f_xn_resampler_32f_xn_rvv(float** result, cons
             float* outPtr = result[current_correlator_tap];
             const unsigned int* overflowIndexPtr = (const unsigned int*) overflowIndexBuffer;
 
-            for (size_t vl; n > 0; n -= vl, outPtr += vl, offsetPtr += vl)
+            for (size_t vl; n > 0; n -= vl, outPtr += vl, overflowIndexPtr += vl)
                 {
                     // Record how many data elements will actually be processed
                     vl = __riscv_vsetvl_e32m8(n);

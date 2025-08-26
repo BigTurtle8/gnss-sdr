@@ -631,7 +631,7 @@ static inline void volk_gnsssdr_16ic_xn_resampler_16ic_xn_rvv(lv_16sc_t** result
             int* outPtr = (int*) result[current_correlator_tap];
             const unsigned int* overflowIndexPtr = (const unsigned int*) overflowIndexBuffer;
 
-            for (size_t vl; n > 0; n -= vl, outPtr += vl, offsetPtr += vl)
+            for (size_t vl; n > 0; n -= vl, outPtr += vl, overflowIndexPtr += vl)
                 {
                     // Record how many elements will actually be processed
                     vl = __riscv_vsetvl_e32m8(n);
