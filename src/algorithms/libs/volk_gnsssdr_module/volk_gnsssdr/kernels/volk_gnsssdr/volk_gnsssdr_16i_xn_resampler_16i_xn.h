@@ -599,8 +599,11 @@ static inline void volk_gnsssdr_16i_xn_resampler_16i_xn_neon(int16_t** result, c
 
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
+
 static inline void volk_gnsssdr_16i_xn_resampler_16i_xn_rvv(int16_t** result, const int16_t* local_code, float rem_code_phase_chips, float code_phase_step_chips, float* shifts_chips, unsigned int code_length_chips, int num_out_vectors, unsigned int num_points)
 {
+    // Initialize reference pointer, as stays same across loops
+    const int16_t* inPtr = local_code;
 
     for (int current_correlator_tap = 0; current_correlator_tap < num_out_vectors; current_correlator_tap++)
         {
@@ -626,7 +629,6 @@ static inline void volk_gnsssdr_16i_xn_resampler_16i_xn_rvv(int16_t** result, co
 
             // Initialize pointers to track progress as stripmine
             int16_t* outPtr = result[current_correlator_tap];
-            const int16_t* inPtr = local_code;
             const unsigned int* offsetPtr = (const unsigned int*) offsetBuffer;
 
             for (size_t vl; n > 0; n -= vl, outPtr += vl, offsetPtr += vl)

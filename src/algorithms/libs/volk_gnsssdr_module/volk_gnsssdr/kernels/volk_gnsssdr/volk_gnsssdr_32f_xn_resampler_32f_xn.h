@@ -605,6 +605,9 @@ static inline void volk_gnsssdr_32f_xn_resampler_32f_xn_neon(float** result, con
 
 static inline void volk_gnsssdr_32f_xn_resampler_32f_xn_rvv(float** result, const float* local_code, float rem_code_phase_chips, float code_phase_step_chips, float* shifts_chips, unsigned int code_length_chips, int num_out_vectors, unsigned int num_points)
 {
+    // Initialize reference pointer, as stays same across loops
+    const float* inPtr = local_code;
+
     for (int current_correlator_tap = 0; current_correlator_tap < num_out_vectors; current_correlator_tap++)
         {
             // Stores address offsets from `local_code` to load from and
@@ -629,7 +632,6 @@ static inline void volk_gnsssdr_32f_xn_resampler_32f_xn_rvv(float** result, cons
 
             // Initialize pointers to track progress as stripmine
             float* outPtr = result[current_correlator_tap];
-            const float* inPtr = local_code;
             const unsigned int* offsetPtr = (const unsigned int*) offsetBuffer;
 
             for (size_t vl; n > 0; n -= vl, outPtr += vl, offsetPtr += vl)

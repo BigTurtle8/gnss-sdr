@@ -763,6 +763,9 @@ static inline void volk_gnsssdr_32fc_xn_resampler_32fc_xn_rvv(lv_32fc_t** result
     // To make easier to work with in RVV, just interpret the two 32-bit components
     // of each complex number as a single 64-bit number to move around
 
+    // Initialize reference pointer, as stays same across loops
+    const long* inPtr = (const long*) local_code;
+
     for (int current_correlator_tap = 0; current_correlator_tap < num_out_vectors; current_correlator_tap++)
         {
             // Stores address offsets from `local_code` to load from and
@@ -787,7 +790,6 @@ static inline void volk_gnsssdr_32fc_xn_resampler_32fc_xn_rvv(lv_32fc_t** result
 
             // Initialize pointers to track progress as stripmine
             long* outPtr = (long*) result[current_correlator_tap];
-            const long* inPtr = (const long*) local_code;
             const unsigned int* offsetPtr = (const unsigned int*) offsetBuffer;
 
             for (size_t vl; n > 0; n -= vl, outPtr += vl, offsetPtr += vl)
