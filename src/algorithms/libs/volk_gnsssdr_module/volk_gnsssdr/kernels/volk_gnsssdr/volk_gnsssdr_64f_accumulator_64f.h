@@ -241,10 +241,11 @@ static inline void volk_gnsssdr_64f_accumulator_64f_rvv(double* result, const do
             vl = __riscv_vsetvl_e64m8(n);
 
             // Load in[0..vl)
-            vfloat64m8 inVal = __riscv_vle64_v_f64m8(inPtr, vl);
+            vfloat64m8_t inVal = __riscv_vle64_v_f64m8(inPtr, vl);
 
+            // Keep ordered just in case matters
             // acc[0] = sum ( acc[0], in[0..vl) )
-            accVal = __riscv_vfredsum_vs_f64m8_f64m1(inVal, accVal, vl);
+            accVal = __riscv_vfredosum_vs_f64m8_f64m1(inVal, accVal, vl);
 
             // On looping, decrement the number of
             // elements left and increase the pointers
@@ -255,7 +256,7 @@ static inline void volk_gnsssdr_64f_accumulator_64f_rvv(double* result, const do
     double* resPtr = result;
 
     // *result = acc[0]
-    __riscv_vse64_v_f64m8(resPtr, accVal, 1);
+    __riscv_vse64_v_f64m1(resPtr, accVal, 1);
 }
 #endif /* LV_HAVE_RVV */
 
