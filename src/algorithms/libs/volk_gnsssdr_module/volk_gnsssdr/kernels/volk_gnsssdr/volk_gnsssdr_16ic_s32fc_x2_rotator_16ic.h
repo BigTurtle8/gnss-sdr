@@ -999,7 +999,7 @@ static inline void volk_gnsssdr_16ic_s32fc_x2_rotator_16ic_rvv(lv_16sc_t* outVec
                     // phase[i] = phase[i] * ( phaseInc[i] ^ i )
                     for (int j = 0; j < vl; j++)
                         {
-                            vbool8_t maskVal = __riscv_vmsgtu_vx_u32m4_b4(idVal, 0, vl);
+                            vbool8_t maskVal = __riscv_vmsgtu_vx_u32m4_b8(iterVal, 0, vl);
 
                             // For more details on cross product,
                             // check `volk_gnsssdr_8ic_x2_multiply_8ic_rvv`,
