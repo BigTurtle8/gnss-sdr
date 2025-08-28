@@ -956,24 +956,24 @@ static inline void volk_gnsssdr_16ic_16i_rotator_dot_prod_16ic_xn_rvv(lv_16sc_t*
                     vfloat32m4_t wOutImagVal = __riscv_vfmul_vv_f32m4(fInVal, phaseImagVal, vl);
 
                     // Load accumulator
-                    vfloat32m1_t accRealVal = __riscv_vfmv_s_x_f32m1((float) outPtr[n_vec], 1);
-                    vfloat32m1_t accImagVal = __riscv_vfmv_s_x_f32m1((float) outPtr[n_vec + 1], 1);
+                    vfloat32m1_t accRealVal = __riscv_vfmv_s_f_f32m1((float) outPtr[n_vec], 1);
+                    vfloat32m1_t accImagVal = __riscv_vfmv_s_f_f32m1((float) outPtr[n_vec + 1], 1);
 
                     // acc[0] = sum( acc[0], out[0..vl) )
-                    accRealVal = __riscv_vfredsum_vs_f32m4_f32m1(wOutRealVal, accRealVal, vl);
-                    accImagVal = __riscv_vfredsum_vs_f32m4_f32m1(wOutImagVal, accImagVal, vl);
+                    accRealVal = __riscv_vfredosum_vs_f32m4_f32m1(wOutRealVal, accRealVal, vl);
+                    accImagVal = __riscv_vfredosum_vs_f32m4_f32m1(wOutImagVal, accImagVal, vl);
 
                     // Technically could give a different result than saturating
                     // one at a time, due to ordering differences
                     // Saturate within 16 bits
-                    accRealVal = __riscv_vfmin_vx_f32m1(accRealVal, 32767, 1);
-                    accRealVal = __riscv_vfmax_vx_f32m1(accRealVal, -32768, 1);
-                    accImagVal = __riscv_vfmin_vx_f32m1(accImagVal, 32767, 1);
-                    accImagVal = __riscv_vfmax_vx_f32m1(accImagVal, -32768, 1);
+                    accRealVal = __riscv_vfmin_vf_f32m1(accRealVal, 32767, 1);
+                    accRealVal = __riscv_vfmax_vf_f32m1(accRealVal, -32768, 1);
+                    accImagVal = __riscv_vfmin_vf_f32m1(accImagVal, 32767, 1);
+                    accImagVal = __riscv_vfmax_vf_f32m1(accImagVal, -32768, 1);
 
                     // Store acc[0]
-                    outPtr[n_vec] = (short) __riscv_vfmv_f_s_f32m1(accRealVal);
-                    outPtr[n_vec + 1] = (short) __riscv_vfmv_f_s_f32m1(accImagVal);
+                    outPtr[n_vec] = (short) __riscv_vfmv_f_s_f32m1_f32(accRealVal);
+                    outPtr[n_vec + 1] = (short) __riscv_vfmv_f_s_f32m1_f32(accImagVal);
 
                     // Increment this pointer
                     inPtrBuf[n_vec] += vl;
