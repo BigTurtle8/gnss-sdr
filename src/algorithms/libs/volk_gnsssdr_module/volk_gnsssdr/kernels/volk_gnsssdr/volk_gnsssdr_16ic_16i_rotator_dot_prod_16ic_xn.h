@@ -986,7 +986,7 @@ static inline void volk_gnsssdr_16ic_16i_rotator_dot_prod_16ic_xn_rvv(lv_16sc_t*
             phasePtr[1] = __riscv_vfmv_f_s_f32m4_f32(phaseImagVal);
 
             // Account for multiplication after last calculation
-            (*phase) *= *phase_inc;
+            (*phase) *= phase_inc;
 
             // In looping, decrement the number of
             // elements left and increment the pointers
