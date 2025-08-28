@@ -952,7 +952,7 @@ static inline void volk_gnsssdr_16ic_16i_rotator_dot_prod_16ic_xn_rvv(lv_16sc_t*
 
             // w(ide)ComProd[i] = ( (float) com[i] ) * phase[i]
             vfloat32m4_t fComRealVal = __riscv_vfwcvt_f_x_v_f32m4(comRealVal, vl);
-            vfloat32m4_t fComImagVal = __riscv_vfwcvt_f_x_v_f32m4(inImagVal, vl);
+            vfloat32m4_t fComImagVal = __riscv_vfwcvt_f_x_v_f32m4(comImagVal, vl);
 
             vfloat32m4_t wComProdRealVal = __riscv_vfmul_vv_f32m4(fComRealVal, phaseRealVal, vl);
             wComProdRealVal = __riscv_vfnmsac_vv_f32m4(wComProdRealVal, fComImagVal, phaseImagVal, vl);
@@ -960,7 +960,7 @@ static inline void volk_gnsssdr_16ic_16i_rotator_dot_prod_16ic_xn_rvv(lv_16sc_t*
             wComProdImagVal = __riscv_vfmacc_vv_f32m4(wComProdImagVal, fComImagVal, phaseRealVal, vl);
 
             // comProd[i] = (int16_t) wComProd[i]
-            vint16m2_t ComProdRealVal = __riscv_vfncvt_x_f_w_i16m2(wComProdRealVal, vl);
+            vint16m2_t comProdRealVal = __riscv_vfncvt_x_f_w_i16m2(wComProdRealVal, vl);
             vint16m2_t comProdImagVal = __riscv_vfncvt_x_f_w_i16m2(wComProdImagVal, vl);
 
             for (int n_vec = 0; n_vec < num_a_vectors; n_vec++)
