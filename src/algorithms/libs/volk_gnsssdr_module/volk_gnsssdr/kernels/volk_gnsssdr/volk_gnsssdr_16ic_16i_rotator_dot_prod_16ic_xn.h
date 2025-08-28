@@ -782,4 +782,221 @@ static inline void volk_gnsssdr_16ic_16i_rotator_dot_prod_16ic_xn_u_avx2(lv_16sc
 }
 #endif /* LV_HAVE_AVX2 */
 
+
+#ifdef LV_HAVE_RVV
+#include <riscv_vector.h>
+
+static inline void volk_gnsssdr_16ic_16i_rotator_dot_prod_16ic_xn_rvv(lv_16sc_t* result, const lv_16sc_t* in_common, const lv_32fc_t phase_inc, lv_32fc_t* phase, const int16_t** in_a, int num_a_vectors, unsigned int num_points)
+{
+    size_t ROTATOR_RELOAD = 256;
+
+    // Initialize reference pointers of compatible type that will not be stripmined
+    float* phasePtr = (float*) phase;
+    float* phaseIncPtr = (float*) phase_inc;
+
+    // Initialize pointers of compatible type to track progress as stripmine
+    short* outPtr = (short*) outVector;
+    const short** inPtrBuf = (const short**) volk_gnsssdr_malloc(
+        num_a_vectors * sizeof(*in_a), volk_gnsssdr_get_alignment()
+    );
+
+    for (n_vec = 0; n_vec < num_a_vectors; n_vec++)
+    {
+        // Initialize `out` to zero
+        result[n_vec] = lv_cmake(0, 0);
+
+        // Create copies in case pointers within `in_a` are not meant to be modified
+        // (in which case function signature should be `const short* const* in_a`)
+        inPtrBuf[n_vec] = in_a[n_vec];
+    }
+
+    /*
+    for (int _ = 0; _ < num_points / ROTATOR_RELOAD; _++)
+        {
+            size_t n = ROTATOR_RELOAD;
+
+            for (size_t vl; n > 0; n -= vl, outPtr += vl * 2, inPtr += vl * 2)
+                {
+                    // Record how many elements will actually be processed
+                    vl = __riscv_vsetvl_e16m2(n);
+
+                    // Splat phase
+                    vfloat32m4_t phaseRealVal = __riscv_vfmv_v_f_f32m4(phasePtr[0], vl);
+                    vfloat32m4_t phaseImagVal = __riscv_vfmv_v_f_f32m4(phasePtr[1], vl);
+
+                    // Splat phaseInc
+                    vfloat32m4_t phaseIncRealVal = __riscv_vfmv_v_f_f32m4(phaseIncPtr[0], vl);
+                    vfloat32m4_t phaseIncImagVal = __riscv_vfmv_v_f_f32m4(phaseIncPtr[1], vl);
+
+                    // iter[i] = i
+                    vuint32m4_t iterVal = __riscv_vid_v_u32m4(vl);
+
+                    // phase[i] = phase[i] * ( phaseInc[i] ^ i )
+                    for (int j = 1; j < vl; j++)
+                        {
+                            vbool8_t maskVal = __riscv_vmsgtu_vx_u32m4_b8(iterVal, 0, vl);
+
+                            // Initialize as copies of phase so that can target masked
+                            // operations onto these copies instead of the original vectors
+                            vfloat32m4_t prodRealVal = phaseRealVal;
+                            vfloat32m4_t prodImagVal = phaseImagVal;
+
+                            // For more details on cross product,
+                            // check `volk_gnsssdr_8ic_x2_multiply_8ic_rvv`,
+                            // for instance
+                            prodRealVal = __riscv_vfmul_vv_f32m4_mu(maskVal, prodRealVal, phaseRealVal, phaseIncRealVal, vl);
+                            prodRealVal = __riscv_vfnmsac_vv_f32m4_mu(maskVal, prodRealVal, phaseImagVal, phaseIncImagVal, vl);
+                            prodImagVal = __riscv_vfmul_vv_f32m4_mu(maskVal, prodImagVal, phaseRealVal, phaseIncImagVal, vl);
+                            prodImagVal = __riscv_vfmacc_vv_f32m4_mu(maskVal, prodImagVal, phaseImagVal, phaseIncRealVal, vl);
+
+                            phaseRealVal = prodRealVal;
+                            phaseImagVal = prodImagVal;
+
+                            iterVal = __riscv_vsub_vx_u32m4_mu(maskVal, iterVal, iterVal, 1, vl);
+                        }
+
+                    // Load inReal[0..vl), inImag[0..vl)
+                    vint16m2x2_t inVal = __riscv_vlseg2e16_v_i16m2x2(inPtr, vl);
+                    vint16m2_t inRealVal = __riscv_vget_v_i16m2x2_i16m2(inVal, 0);
+                    vint16m2_t inImagVal = __riscv_vget_v_i16m2x2_i16m2(inVal, 1);
+
+                    // w(ide)Out[i] = ( (float) in[i] ) * phase[i]
+                    vfloat32m4_t fInRealVal = __riscv_vfwcvt_f_x_v_f32m4(inRealVal, vl);
+                    vfloat32m4_t fInImagVal = __riscv_vfwcvt_f_x_v_f32m4(inImagVal, vl);
+
+                    vfloat32m4_t wOutRealVal = __riscv_vfmul_vv_f32m4(fInRealVal, phaseRealVal, vl);
+                    wOutRealVal = __riscv_vfnmsac_vv_f32m4(wOutRealVal, fInImagVal, phaseImagVal, vl);
+                    vfloat32m4_t wOutImagVal = __riscv_vfmul_vv_f32m4(fInRealVal, phaseImagVal, vl);
+                    wOutImagVal = __riscv_vfmacc_vv_f32m4(wOutImagVal, fInImagVal, phaseRealVal, vl);
+
+                    // out[i] = (int16_t) wOut[i]
+                    vint16m2_t outRealVal = __riscv_vfncvt_x_f_w_i16m2(wOutRealVal, vl);
+                    vint16m2_t outImagVal = __riscv_vfncvt_x_f_w_i16m2(wOutImagVal, vl);
+
+                    // Store out[0..vl)
+                    vint16m2x2_t outVal = __riscv_vcreate_v_i16m2x2(outRealVal, outImagVal);
+                    __riscv_vsseg2e16_v_i16m2x2(outPtr, outVal, vl);
+
+                    // Store phase[vl - 1]
+                    phaseRealVal = __riscv_vslidedown_vx_f32m4(phaseRealVal, vl - 1, vl);
+                    phasePtr[0] = __riscv_vfmv_f_s_f32m4_f32(phaseRealVal);
+                    phaseImagVal = __riscv_vslidedown_vx_f32m4(phaseImagVal, vl - 1, vl);
+                    phasePtr[1] = __riscv_vfmv_f_s_f32m4_f32(phaseImagVal);
+
+                    // Account for multiplication after last calculation
+                    (*phase) *= *phase_inc;
+
+                    // In looping, decrement the number of
+                    // elements left and increment the pointers
+                    // by the number of elements processed,
+                    // taking into account how the `vl` complex
+                    // numbers are each stored as two 16-bit numbers
+                }
+
+            // Regenerate phase
+#ifdef __cplusplus
+            (*phase) /= std::abs((*phase));
+#else
+            (*phase) /= hypotf(lv_creal(*phase), lv_cimag(*phase));
+#endif
+        }
+
+    size_t n = num_points % ROTATOR_RELOAD;
+    */
+    size_t n = num_points;
+
+    for (size_t vl; n > 0; n -= vl)
+        {
+            // Record how many elements will actually be processed
+            vl = __riscv_vsetvl_e16m2(n);
+
+            // Splat phase
+            vfloat32m4_t phaseRealVal = __riscv_vfmv_v_f_f32m4(phasePtr[0], vl);
+            vfloat32m4_t phaseImagVal = __riscv_vfmv_v_f_f32m4(phasePtr[1], vl);
+
+            // Splat phaseInc
+            vfloat32m4_t phaseIncRealVal = __riscv_vfmv_v_f_f32m4(phaseIncPtr[0], vl);
+            vfloat32m4_t phaseIncImagVal = __riscv_vfmv_v_f_f32m4(phaseIncPtr[1], vl);
+
+            // iter[i] = i
+            vuint32m4_t iterVal = __riscv_vid_v_u32m4(vl);
+
+            // phase[i] = phase[i] * ( phaseInc[i] ^ i )
+            for (int j = 1; j < vl; j++)
+                {
+                    vbool8_t maskVal = __riscv_vmsgtu_vx_u32m4_b8(iterVal, 0, vl);
+
+                    // Initialize as copies of phase so that can target masked
+                    // operations onto these copies instead of the original vectors
+                    vfloat32m4_t prodRealVal = phaseRealVal;
+                    vfloat32m4_t prodImagVal = phaseImagVal;
+
+                    // For more details on cross product,
+                    // check `volk_gnsssdr_8ic_x2_multiply_8ic_rvv`,
+                    // for instance
+                    prodRealVal = __riscv_vfmul_vv_f32m4_mu(maskVal, prodRealVal, phaseRealVal, phaseIncRealVal, vl);
+                    prodRealVal = __riscv_vfnmsac_vv_f32m4_mu(maskVal, prodRealVal, phaseImagVal, phaseIncImagVal, vl);
+                    prodImagVal = __riscv_vfmul_vv_f32m4_mu(maskVal, prodImagVal, phaseRealVal, phaseIncImagVal, vl);
+                    prodImagVal = __riscv_vfmacc_vv_f32m4_mu(maskVal, prodImagVal, phaseImagVal, phaseIncRealVal, vl);
+
+                    phaseRealVal = prodRealVal;
+                    phaseImagVal = prodImagVal;
+
+                    iterVal = __riscv_vsub_vx_u32m4_mu(maskVal, iterVal, iterVal, 1, vl);
+                }
+
+            for (int n_vec = 0; n_vec < num_a_vectors; n_vec++)
+                {
+                    // Load inReal[0..vl), inImag[0..vl)
+                    vint16m2_t inVal = __riscv_vle16_v_i16m2(inPtrBuf[n_vec], vl);
+
+                    // w(ide)Out[i] = ( (float) in[i] ) * phase[i]
+                    vfloat32m4_t fInVal = __riscv_vfwcvt_f_x_v_f32m4(inVal, vl);
+
+                    vfloat32m4_t wOutRealVal = __riscv_vfmul_vv_f32m4(fInVal, phaseRealVal, vl);
+                    vfloat32m4_t wOutImagVal = __riscv_vfmul_vv_f32m4(fInVal, phaseImagVal, vl);
+
+                    // Load accumulator
+                    vfloat32m1_t accRealVal = __riscv_vmv_s_x_f32m1((float) outPtr[n_vec], 1);
+                    vfloat32m1_t accImagVal = __riscv_vmv_s_x_f32m1((float) outPtr[n_vec + 1], 1);
+
+                    // acc[0] = sum( acc[0], out[0..vl) )
+                    accRealVal = __riscv_vredsum_vs_f32m4_f32m1(wOutRealVal, accRealVal, vl);
+                    accImagVal = __riscv_vredsum_vs_f32m4_f32m1(wOutImagVal, accImagVal, vl);
+
+                    // Technically could give a different result than saturating
+                    // one at a time, due to ordering differences
+                    // Saturate within 16 bits
+                    accRealVal = __riscv_vmin_vx_f32m1(accRealVal, 32767, 1);
+                    accRealVal = __riscv_vmax_vx_f32m1(accRealVal, -32768, 1);
+                    accImagVal = __riscv_vmin_vx_f32m1(accImagVal, 32767, 1);
+                    accImagVal = __riscv_vmax_vx_f32m1(accImagVal, -32768, 1);
+
+                    // Store acc[0]
+                    outPtr[n_vec] = (short) __riscv_vmv_f_s_f32m1(accRealVal);
+                    outPtr[n_vec + 1] = (short) __riscv_vmv_f_s_f32m1(accImagVal);
+
+                    // Increment this pointer
+                    inPtrBuf[n_vec] += vl;
+                }
+
+            // Store phase[vl - 1]
+            phaseRealVal = __riscv_vslidedown_vx_f32m4(phaseRealVal, vl - 1, vl);
+            phasePtr[0] = __riscv_vfmv_f_s_f32m4_f32(phaseRealVal);
+            phaseImagVal = __riscv_vslidedown_vx_f32m4(phaseImagVal, vl - 1, vl);
+            phasePtr[1] = __riscv_vfmv_f_s_f32m4_f32(phaseImagVal);
+
+            // Account for multiplication after last calculation
+            (*phase) *= *phase_inc;
+
+            // In looping, decrement the number of
+            // elements left and increment the pointers
+            // by the number of elements processed
+        }
+
+    // Don't leak memory!
+    volk_gnsssdr_free(inPtrBuf);
+}
+#endif /* LV_HAVE_RVV */
+
 #endif /* INCLUDED_volk_gnsssdr_16ic_16i_dot_prod_16ic_xn_H */
