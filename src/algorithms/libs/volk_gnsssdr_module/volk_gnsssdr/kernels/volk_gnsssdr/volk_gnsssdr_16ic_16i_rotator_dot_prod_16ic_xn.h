@@ -795,6 +795,7 @@ static inline void volk_gnsssdr_16ic_16i_rotator_dot_prod_16ic_xn_rvv(lv_16sc_t*
 
     // Initialize pointers of compatible type to track progress as stripmine
     short* outPtr = (short*) result;
+    const short* comPtr = (const short*) in_common;
     const short** inPtrBuf = (const short**) volk_gnsssdr_malloc(
         num_a_vectors * sizeof(*in_a), volk_gnsssdr_get_alignment()
     );
@@ -904,7 +905,7 @@ static inline void volk_gnsssdr_16ic_16i_rotator_dot_prod_16ic_xn_rvv(lv_16sc_t*
     */
     size_t n = num_points;
 
-    for (size_t vl; n > 0; n -= vl)
+    for (size_t vl; n > 0; n -= vl, comPtr += vl * 2)
         {
             // Record how many elements will actually be processed
             vl = __riscv_vsetvl_e16m2(n);
@@ -944,36 +945,52 @@ static inline void volk_gnsssdr_16ic_16i_rotator_dot_prod_16ic_xn_rvv(lv_16sc_t*
                     iterVal = __riscv_vsub_vx_u32m4_mu(maskVal, iterVal, iterVal, 1, vl);
                 }
 
+            // Load com[0..vl)
+            vint16m2x2_t comVal = __riscv_vlseg2e16_v_i16m2x2(comPtr, vl);
+            vint16m2_t comRealVal = __riscv_vget_v_i16m2x2_i16m2(comVal, 0);
+            vint16m2_t comImagVal = __riscv_vget_v_i16m2x2_i16m2(comVal, 1);
+
+            // w(ide)ComProd[i] = ( (float) com[i] ) * phase[i]
+            vfloat32m4_t fComRealVal = __riscv_vfwcvt_f_x_v_f32m4(comRealVal, vl);
+            vfloat32m4_t fComImagVal = __riscv_vfwcvt_f_x_v_f32m4(inImagVal, vl);
+
+            vfloat32m4_t wComProdRealVal = __riscv_vfmul_vv_f32m4(fComRealVal, phaseRealVal, vl);
+            wComProdRealVal = __riscv_vfnmsac_vv_f32m4(wComProdRealVal, fComImagVal, phaseImagVal, vl);
+            vfloat32m4_t wComProdImagVal = __riscv_vfmul_vv_f32m4(fComRealVal, phaseImagVal, vl);
+            wComProdImagVal = __riscv_vfmacc_vv_f32m4(wComProdImagVal, fComImagVal, phaseRealVal, vl);
+
+            // comProd[i] = (int16_t) wComProd[i]
+            vint16m2_t ComProdRealVal = __riscv_vfncvt_x_f_w_i16m2(wComProdRealVal, vl);
+            vint16m2_t comProdImagVal = __riscv_vfncvt_x_f_w_i16m2(wComProdImagVal, vl);
+
             for (int n_vec = 0; n_vec < num_a_vectors; n_vec++)
                 {
-                    // Load inReal[0..vl), inImag[0..vl)
+                    // Load in[0..vl)
                     vint16m2_t inVal = __riscv_vle16_v_i16m2(inPtrBuf[n_vec], vl);
 
-                    // w(ide)Out[i] = ( (float) in[i] ) * phase[i]
-                    vfloat32m4_t fInVal = __riscv_vfwcvt_f_x_v_f32m4(inVal, vl);
-
-                    vfloat32m4_t wOutRealVal = __riscv_vfmul_vv_f32m4(fInVal, phaseRealVal, vl);
-                    vfloat32m4_t wOutImagVal = __riscv_vfmul_vv_f32m4(fInVal, phaseImagVal, vl);
+                    // out[i] = in[i] * comProd[i]
+                    vint16m2_t outRealVal = __riscv_vmul_vv_i16m2(inVal, comProdRealVal, vl);
+                    vint16m2_t outImagVal = __riscv_vmul_vv_i16m2(inVal, comProdImagVal, vl);
 
                     // Load accumulator
-                    vfloat32m1_t accRealVal = __riscv_vfmv_s_f_f32m1((float) outPtr[n_vec], 1);
-                    vfloat32m1_t accImagVal = __riscv_vfmv_s_f_f32m1((float) outPtr[n_vec + 1], 1);
+                    vint32m1_t accRealVal = __riscv_vmv_s_x_i32m1((int) outPtr[n_vec], 1);
+                    vint32m1_t accImagVal = __riscv_vmv_s_x_i32m1((int) outPtr[n_vec + 1], 1);
 
                     // acc[0] = sum( acc[0], out[0..vl) )
-                    accRealVal = __riscv_vfredosum_vs_f32m4_f32m1(wOutRealVal, accRealVal, vl);
-                    accImagVal = __riscv_vfredosum_vs_f32m4_f32m1(wOutImagVal, accImagVal, vl);
+                    accRealVal = __riscv_vwredsum_vs_i16m2_i32m1(outRealVal, accRealVal, vl);
+                    accImagVal = __riscv_vwredsum_vs_i16m2_i32m1(outImagVal, accImagVal, vl);
 
                     // Technically could give a different result than saturating
                     // one at a time, due to ordering differences
                     // Saturate within 16 bits
-                    accRealVal = __riscv_vfmin_vf_f32m1(accRealVal, 32767, 1);
-                    accRealVal = __riscv_vfmax_vf_f32m1(accRealVal, -32768, 1);
-                    accImagVal = __riscv_vfmin_vf_f32m1(accImagVal, 32767, 1);
-                    accImagVal = __riscv_vfmax_vf_f32m1(accImagVal, -32768, 1);
+                    accRealVal = __riscv_vmin_vx_i32m1(accRealVal, 32767, 1);
+                    accRealVal = __riscv_vmax_vx_i32m1(accRealVal, -32768, 1);
+                    accImagVal = __riscv_vmin_vx_i32m1(accImagVal, 32767, 1);
+                    accImagVal = __riscv_vmax_vx_i32m1(accImagVal, -32768, 1);
 
                     // Store acc[0]
-                    outPtr[n_vec] = (short) __riscv_vfmv_f_s_f32m1_f32(accRealVal);
-                    outPtr[n_vec + 1] = (short) __riscv_vfmv_f_s_f32m1_f32(accImagVal);
+                    outPtr[n_vec] = (short) __riscv_vmv_x_s_i32m1_i32(accRealVal);
+                    outPtr[n_vec + 1] = (short) __riscv_vmv_x_s_i32m1_i32(accImagVal);
 
                     // Increment this pointer
                     inPtrBuf[n_vec] += vl;
