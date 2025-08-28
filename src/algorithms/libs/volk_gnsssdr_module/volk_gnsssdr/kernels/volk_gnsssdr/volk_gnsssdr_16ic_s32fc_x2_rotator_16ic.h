@@ -1077,16 +1077,21 @@ static inline void volk_gnsssdr_16ic_s32fc_x2_rotator_16ic_rvv(lv_16sc_t* outVec
             vuint32m4_t iterVal = __riscv_vid_v_u32m4(vl);
 
             // phase[i] = phase[i] * ( phaseInc[i] ^ i )
-            for (int j = 0; j < vl - 1; j++)
+            for (int j = 1; j < vl; j++)
                 {
                     vbool8_t maskVal = __riscv_vmsgtu_vx_u32m4_b8(iterVal, 0, vl);
+
+                    // Initialize as copies of phase so that can target masked
+                    // operations onto these copies instead of the original vectors
+                    vfloat32m4_t prodRealVal = phaseRealVal;
+                    vfloat32m4_t prodImagVal = phaseImagVal;
 
                     // For more details on cross product,
                     // check `volk_gnsssdr_8ic_x2_multiply_8ic_rvv`,
                     // for instance
-                    vfloat32m4_t prodRealVal = __riscv_vfmul_vv_f32m4_mu(maskVal, phaseRealVal, phaseRealVal, phaseIncRealVal, vl);
+                    prodRealVal = __riscv_vfmul_vv_f32m4_mu(maskVal, prodRealVal, phaseRealVal, phaseIncRealVal, vl);
                     prodRealVal = __riscv_vfnmsac_vv_f32m4_mu(maskVal, prodRealVal, phaseImagVal, phaseIncImagVal, vl);
-                    vfloat32m4_t prodImagVal = __riscv_vfmul_vv_f32m4_mu(maskVal, phaseImagVal, phaseRealVal, phaseIncImagVal, vl);
+                    prodImagVal = __riscv_vfmul_vv_f32m4_mu(maskVal, prodImagVal, phaseRealVal, phaseIncImagVal, vl);
                     prodImagVal = __riscv_vfmacc_vv_f32m4_mu(maskVal, prodImagVal, phaseImagVal, phaseIncRealVal, vl);
 
                     phaseRealVal = prodRealVal;
