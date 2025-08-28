@@ -969,8 +969,8 @@ static inline void volk_gnsssdr_16ic_s32fc_x2_rotator_16ic_rvv(lv_16sc_t* outVec
     size_t ROTATOR_RELOAD = 512;
 
     // Initialize reference pointers of compatible type that will not be stripmined
-    int* phasePtr = (int*) phase;
-    int* phaseIncPtr = (int*) phase_inc;
+    float* phasePtr = (float*) phase;
+    float* phaseIncPtr = (float*) phase_inc;
 
     // Initialize pointers of compatible type to track progress as stripmine
     short* outPtr = (short*) outVector;
@@ -1060,7 +1060,7 @@ static inline void volk_gnsssdr_16ic_s32fc_x2_rotator_16ic_rvv(lv_16sc_t* outVec
     //size_t n = num_points % ROTATOR_RELOAD;
     size_t n = num_points;
 
-    for (size_t vl; n > 0; n -= vl, outPtr += vl, inPtr += vl)
+    for (size_t vl; n > 0; n -= vl, outPtr += vl * 2, inPtr += vl * 2)
         {
             // Record how many elements will actually be processed
             vl = __riscv_vsetvl_e16m2(n);
