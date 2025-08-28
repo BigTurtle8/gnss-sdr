@@ -914,8 +914,8 @@ static inline void volk_gnsssdr_16ic_16i_rotator_dot_prod_16ic_xn_rvv(lv_16sc_t*
             vfloat32m4_t phaseImagVal = __riscv_vfmv_v_f_f32m4(phasePtr[1], vl);
 
             // Splat phaseInc
-            vfloat32m4_t phaseIncRealVal = __riscv_vfmv_v_f_f32m4(lv_creal(phaseIncPtr), vl);
-            vfloat32m4_t phaseIncImagVal = __riscv_vfmv_v_f_f32m4(lv_cimag(phaseIncPtr), vl);
+            vfloat32m4_t phaseIncRealVal = __riscv_vfmv_v_f_f32m4(lv_creal(phase_inc), vl);
+            vfloat32m4_t phaseIncImagVal = __riscv_vfmv_v_f_f32m4(lv_cimag(phase_inc), vl);
 
             // iter[i] = i
             vuint32m4_t iterVal = __riscv_vid_v_u32m4(vl);
