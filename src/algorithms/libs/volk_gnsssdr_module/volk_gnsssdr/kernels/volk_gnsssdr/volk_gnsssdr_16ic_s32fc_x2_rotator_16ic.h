@@ -966,7 +966,6 @@ static inline void volk_gnsssdr_16ic_s32fc_x2_rotator_16ic_neon_reload(lv_16sc_t
 
 static inline void volk_gnsssdr_16ic_s32fc_x2_rotator_16ic_rvv(lv_16sc_t* outVector, const lv_16sc_t* inVector, const lv_32fc_t* phase_inc, lv_32fc_t* phase, unsigned int num_points)
 {
-    /*
     size_t ROTATOR_RELOAD = 512;
 
     // Initialize reference pointers of compatible type that will not be stripmined
@@ -977,6 +976,7 @@ static inline void volk_gnsssdr_16ic_s32fc_x2_rotator_16ic_rvv(lv_16sc_t* outVec
     short* outPtr = (short*) outVector;
     const short* inPtr = (const short*) inVector;
 
+    /*
     for (int _ = 0; _ < num_points / ROTATOR_RELOAD; _++)
         {
             size_t n = ROTATOR_RELOAD;
@@ -1055,7 +1055,7 @@ static inline void volk_gnsssdr_16ic_s32fc_x2_rotator_16ic_rvv(lv_16sc_t* outVec
             (*phase) /= hypotf(lv_creal(*phase), lv_cimag(*phase));
 #endif
         }
-        */
+    */
 
     //size_t n = num_points % ROTATOR_RELOAD;
     size_t n = num_points;
