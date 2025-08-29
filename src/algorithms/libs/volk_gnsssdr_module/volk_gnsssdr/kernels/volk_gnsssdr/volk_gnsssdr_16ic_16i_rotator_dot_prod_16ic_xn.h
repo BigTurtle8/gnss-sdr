@@ -999,8 +999,8 @@ static inline void volk_gnsssdr_16ic_16i_rotator_dot_prod_16ic_xn_rvv(lv_16sc_t*
                             accImagVal = __riscv_vmax_vx_i32m1(accImagVal, -32768, 1);
 
                             // Store acc[0]
-                            outPtr[2 * n_vec] = (short) __riscv_vmv_x_s_i32m1_i32(accRealVal);
-                            outPtr[2 * n_vec + 1] = (short) __riscv_vmv_x_s_i32m1_i32(accImagVal);
+                            outPtr[2 * j] = (short) __riscv_vmv_x_s_i32m1_i32(accRealVal);
+                            outPtr[2 * j + 1] = (short) __riscv_vmv_x_s_i32m1_i32(accImagVal);
 
                             // Rotate to next acc
                             accRealVal = __riscv_vslide1down_vx_i32m1(accRealVal, 0, vec_vl);
