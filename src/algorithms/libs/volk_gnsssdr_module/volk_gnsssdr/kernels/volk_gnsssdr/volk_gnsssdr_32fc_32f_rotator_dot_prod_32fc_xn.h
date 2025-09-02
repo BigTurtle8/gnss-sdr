@@ -487,7 +487,7 @@ static inline void volk_gnsssdr_32fc_32f_rotator_dot_prod_32fc_xn_a_avx(lv_32fc_
 #ifdef LV_HAVE_RVV
 #include <riscv_vector.h>
 
-static inline void volk_gnsssdr_32fc_x2_rotator_dot_prod_32fc_xn_rvv(lv_32sc_t* result, const lv_32sc_t* in_common, const lv_32fc_t phase_inc, lv_32fc_t* phase, const float** in_a, int num_a_vectors, unsigned int num_points)
+static inline void volk_gnsssdr_32fc_32f_rotator_dot_prod_32fc_xn_rvv(lv_32sc_t* result, const lv_32sc_t* in_common, const lv_32fc_t phase_inc, lv_32fc_t* phase, const float** in_a, int num_a_vectors, unsigned int num_points)
 {
     size_t ROTATOR_RELOAD = 256;
 
