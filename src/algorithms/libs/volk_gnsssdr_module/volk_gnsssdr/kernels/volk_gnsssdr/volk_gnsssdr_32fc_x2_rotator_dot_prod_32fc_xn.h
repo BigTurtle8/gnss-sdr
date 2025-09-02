@@ -813,7 +813,7 @@ static inline void volk_gnsssdr_32fc_x2_rotator_dot_prod_32fc_xn_rvv(lv_32fc_t* 
 
         // Treat complex number as struct containting
         // two 16-bit integers
-        inPtrBuf[n_vec] = in_a[n_vec];
+        inPtrBuf[n_vec] = (float*) in_a[n_vec];
     }
 
     /*
