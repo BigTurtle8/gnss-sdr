@@ -1883,9 +1883,9 @@ static inline void volk_gnsssdr_16ic_x2_rotator_dot_prod_16ic_xn_rvv(lv_16sc_t* 
         // Initialize `out` to zero
         result[n_vec] = lv_cmake(0, 0);
 
-        // Create copies in case pointers within `in_a` are not meant to be modified
-        // (in which case function signature should be `const short* const* in_a`)
-        inPtrBuf[n_vec] = in_a[n_vec];
+        // Treat complex number as struct containting
+        // two 16-bit integers
+        inPtrBuf[n_vec] = (const short*) in_a[n_vec];
     }
 
     /*
