@@ -816,7 +816,6 @@ static inline void volk_gnsssdr_32fc_x2_rotator_dot_prod_32fc_xn_rvv(lv_32fc_t* 
         inPtrBuf[n_vec] = (float*) in_a[n_vec];
     }
 
-    /*
     for (int _ = 0; _ < num_points / ROTATOR_RELOAD; _++)
         {
             size_t n = ROTATOR_RELOAD;
@@ -874,11 +873,15 @@ static inline void volk_gnsssdr_32fc_x2_rotator_dot_prod_32fc_xn_rvv(lv_32fc_t* 
                     for (int n_vec = 0; n_vec < num_a_vectors; n_vec++)
                         {
                             // Load in[0..vl)
-                            vfloat32m4_t inVal = __riscv_vle32_v_f32m4(inPtrBuf[n_vec], vl);
+                            vfloat32m4x2_t inVal = __riscv_vlseg2e32_v_f32m4x2(inPtrBuf[n_vec], vl);
+                            vfloat32m4_t inRealVal = __riscv_vget_v_f32m4x2_f32m4(inVal, 0);
+                            vfloat32m4_t inImagVal = __riscv_vget_v_f32m4x2_f32m4(inVal, 1);
 
                             // out[i] = in[i] * comProd[i]
-                            vfloat32m4_t outRealVal = __riscv_vfmul_vv_f32m4(inVal, comProdRealVal, vl);
-                            vfloat32m4_t outImagVal = __riscv_vfmul_vv_f32m4(inVal, comProdImagVal, vl);
+                            vfloat32m4_t outRealVal = __riscv_vfmul_vv_f32m4(inRealVal, comProdRealVal, vl);
+                            outRealVal = __riscv_vfnmsac_vv_f32m4(outRealVal, inImagVal, comProdImagVal, vl);
+                            vfloat32m4_t outImagVal = __riscv_vfmul_vv_f32m4(inRealVal, comProdImagVal, vl);
+                            outImagVal = __riscv_vfmacc_vv_f32m4(outImagVal, inImagVal, comProdRealVal, vl);
 
                             // Load accumulator
                             vfloat32m1_t accRealVal = __riscv_vfmv_s_f_f32m1(outPtr[2 * n_vec], 1);
@@ -892,8 +895,8 @@ static inline void volk_gnsssdr_32fc_x2_rotator_dot_prod_32fc_xn_rvv(lv_32fc_t* 
                             outPtr[2 * n_vec] = __riscv_vfmv_f_s_f32m1_f32(accRealVal);
                             outPtr[2 * n_vec + 1] = __riscv_vfmv_f_s_f32m1_f32(accImagVal);
 
-                            // Increment this pointer, accounting how each complex element
-                            // is two 32-bit floats
+                            // Increment this pointer, accounting how each complex
+                            // element is two 32-bit floats
                             inPtrBuf[n_vec] += vl * 2;
                         }
 
@@ -909,7 +912,7 @@ static inline void volk_gnsssdr_32fc_x2_rotator_dot_prod_32fc_xn_rvv(lv_32fc_t* 
                     // In looping, decrement the number of
                     // elements left and increment the pointers
                     // by the number of elements processed
-            }
+                }
             // Regenerate phase
 #ifdef __cplusplus
             (*phase) /= std::abs((*phase));
@@ -919,8 +922,6 @@ static inline void volk_gnsssdr_32fc_x2_rotator_dot_prod_32fc_xn_rvv(lv_32fc_t* 
         }
 
     size_t n = num_points % ROTATOR_RELOAD;
-    */
-    size_t n = num_points;
 
     for (size_t vl; n > 0; n -= vl, comPtr += vl * 2)
         {
