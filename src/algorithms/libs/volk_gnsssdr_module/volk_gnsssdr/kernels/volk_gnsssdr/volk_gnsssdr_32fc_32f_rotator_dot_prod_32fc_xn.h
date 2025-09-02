@@ -694,7 +694,7 @@ static inline void volk_gnsssdr_32fc_32f_rotator_dot_prod_32fc_xn_rvv(lv_32fc_t*
 
                     // out[i] = in[i] * comProd[i]
                     vfloat32m4_t outRealVal = __riscv_vfmul_vv_f32m4(inVal, comProdRealVal, vl);
-                    vfloat32m4_t outImagVal = __riscv_vfmul_vv_i16m2(inVal, comProdImagVal, vl);
+                    vfloat32m4_t outImagVal = __riscv_vfmul_vv_f32m4(inVal, comProdImagVal, vl);
 
                     // Load accumulator
                     vfloat32m1_t accRealVal = __riscv_vfmv_s_f_f32m1(outPtr[2 * n_vec], 1);
