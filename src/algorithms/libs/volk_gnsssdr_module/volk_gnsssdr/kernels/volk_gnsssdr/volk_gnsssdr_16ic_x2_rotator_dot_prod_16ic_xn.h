@@ -1888,7 +1888,6 @@ static inline void volk_gnsssdr_16ic_x2_rotator_dot_prod_16ic_xn_rvv(lv_16sc_t* 
         inPtrBuf[n_vec] = (const short*) in_a[n_vec];
     }
 
-    /*
     for (int _ = 0; _ < num_points / ROTATOR_RELOAD; _++)
         {
             size_t n = ROTATOR_RELOAD;
@@ -1954,11 +1953,15 @@ static inline void volk_gnsssdr_16ic_x2_rotator_dot_prod_16ic_xn_rvv(lv_16sc_t* 
                     for (int n_vec = 0; n_vec < num_a_vectors; n_vec++)
                         {
                             // Load in[0..vl)
-                            vint16m2_t inVal = __riscv_vle16_v_i16m2(inPtrBuf[n_vec], vl);
+                            vint16m2x2_t inVal = __riscv_vlseg2e16_v_i16m2x2(inPtrBuf[n_vec], vl);
+                            vint16m2_t inRealVal = __riscv_vget_v_i16m2x2_i16m2(inVal, 0);
+                            vint16m2_t inImagVal = __riscv_vget_v_i16m2x2_i16m2(inVal, 1);
 
                             // out[i] = in[i] * comProd[i]
-                            vint16m2_t outRealVal = __riscv_vmul_vv_i16m2(inVal, comProdRealVal, vl);
-                            vint16m2_t outImagVal = __riscv_vmul_vv_i16m2(inVal, comProdImagVal, vl);
+                            vint16m2_t outRealVal = __riscv_vmul_vv_i16m2(inRealVal, comProdRealVal, vl);
+                            outRealVal = __riscv_vnmsac_vv_i16m2(outRealVal, inImagVal, comProdImagVal, vl);
+                            vint16m2_t outImagVal = __riscv_vmul_vv_i16m2(inRealVal, comProdImagVal, vl);
+                            outImagVal = __riscv_vmacc_vv_i16m2(outImagVal, inImagVal, comProdRealVal, vl);
 
                             // Load accumulator
                             vint32m1_t accRealVal = __riscv_vmv_s_x_i32m1((int) outPtr[2 * n_vec], 1);
@@ -1980,8 +1983,9 @@ static inline void volk_gnsssdr_16ic_x2_rotator_dot_prod_16ic_xn_rvv(lv_16sc_t* 
                             outPtr[2 * n_vec] = (short) __riscv_vmv_x_s_i32m1_i32(accRealVal);
                             outPtr[2 * n_vec + 1] = (short) __riscv_vmv_x_s_i32m1_i32(accImagVal);
 
-                            // Increment this pointer
-                            inPtrBuf[n_vec] += vl;
+                            // Increment this pointer, accounting how each element complex
+                            // element is two 16-bit integer numbers
+                            inPtrBuf[n_vec] += vl * 2;
                         }
 
                     // Store phase[vl - 1]
@@ -2006,8 +2010,6 @@ static inline void volk_gnsssdr_16ic_x2_rotator_dot_prod_16ic_xn_rvv(lv_16sc_t* 
         }
 
     size_t n = num_points % ROTATOR_RELOAD;
-        */
-    size_t n = num_points;
 
     for (size_t vl; n > 0; n -= vl, comPtr += vl * 2)
         {
