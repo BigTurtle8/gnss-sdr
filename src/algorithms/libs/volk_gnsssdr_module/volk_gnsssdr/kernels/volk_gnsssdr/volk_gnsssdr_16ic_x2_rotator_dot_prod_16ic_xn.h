@@ -1983,7 +1983,7 @@ static inline void volk_gnsssdr_16ic_x2_rotator_dot_prod_16ic_xn_rvv(lv_16sc_t* 
                             outPtr[2 * n_vec] = (short) __riscv_vmv_x_s_i32m1_i32(accRealVal);
                             outPtr[2 * n_vec + 1] = (short) __riscv_vmv_x_s_i32m1_i32(accImagVal);
 
-                            // Increment this pointer, accounting how each element complex
+                            // Increment this pointer, accounting how each complex
                             // element is two 16-bit integer numbers
                             inPtrBuf[n_vec] += vl * 2;
                         }
@@ -2102,7 +2102,7 @@ static inline void volk_gnsssdr_16ic_x2_rotator_dot_prod_16ic_xn_rvv(lv_16sc_t* 
                     outPtr[2 * n_vec] = (short) __riscv_vmv_x_s_i32m1_i32(accRealVal);
                     outPtr[2 * n_vec + 1] = (short) __riscv_vmv_x_s_i32m1_i32(accImagVal);
 
-                    // Increment this pointer, accounting how each element complex
+                    // Increment this pointer, accounting how each complex
                     // element is two 16-bit integer numbers
                     inPtrBuf[n_vec] += vl * 2;
                 }
