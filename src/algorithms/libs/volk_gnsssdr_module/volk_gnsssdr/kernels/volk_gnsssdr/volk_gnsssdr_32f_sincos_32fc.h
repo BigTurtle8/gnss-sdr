@@ -807,7 +807,7 @@ static inline void volk_gnsssdr_32f_sincos_32fc_rvv(lv_32fc_t* out, const float*
             // The magic pass: "Extended precision modular arithmetic"
             // x[i] = ((in[i] + reducedY[i] * -DP1) + reducedY[i] * -DP2) + reducedY[i] * -DP3;
             vfloat32m4_t xmm1Val = __riscv_vfmul_vf_f32m4(reducedYVal, c_minus_cephes_DP1, vl);
-            vfloat32m4_t xVal = __riscv_vfadd_vv_f32m4(xVal, xmm1Val, vl);
+            xVal = __riscv_vfadd_vv_f32m4(xVal, xmm1Val, vl);
             vfloat32m4_t xmm2Val = __riscv_vfmul_vf_f32m4(reducedYVal, c_minus_cephes_DP2, vl);
             xVal = __riscv_vfadd_vv_f32m4(xVal, xmm2Val, vl);
             vfloat32m4_t xmm3Val = __riscv_vfmul_vf_f32m4(reducedYVal, c_minus_cephes_DP3, vl);
