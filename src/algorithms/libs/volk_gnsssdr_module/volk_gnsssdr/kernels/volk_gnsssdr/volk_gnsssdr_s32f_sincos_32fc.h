@@ -959,7 +959,7 @@ static inline void volk_gnsssdr_s32f_sincos_32fc_rvv(lv_32fc_t* out, const float
     // Initialize pointers to keep track as stripmine
     float* outPtr = (float*) out;
 
-    for (size_t vl; n > 0; n -= vl, outPtr += vl * 2, inPtr += vl)
+    for (size_t vl; n > 0; n -= vl, outPtr += vl * 2)
         {
             // Record how many elements will actually be processed
             vl = __riscv_vsetvl_e32m4(n);
