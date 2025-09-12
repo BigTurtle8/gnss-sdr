@@ -837,16 +837,16 @@ static inline void volk_gnsssdr_32f_sincos_32fc_rvv(lv_32fc_t* out, const float*
             // Output results
             // sin[i] = polyMask ? y1[i] : y2[i]
             // cos[i] = polyMask ? y2[i] : y1[i]
-            vfloat32m4_t sinVal = __riscv_vmerge_vvm_f32m4(y1Val, y2Val, polyMask, vl);
-            vfloat32m4_t cosVal = __riscv_vmerge_vvm_f32m4(y2Val, y1Val, polyMask, vl);
+            vfloat32m4_t sinVal = __riscv_vmerge_vvm_f32m4(y2Val, y1Val, polyMask, vl);
+            vfloat32m4_t cosVal = __riscv_vmerge_vvm_f32m4(y1Val, y2Val, polyMask, vl);
 
             // outImag[i] = sinSignMask ? -sin[i] : sin[i]
             // outReal[i] = cosSignMask ? cos[i] : -cos[i]
             vfloat32m4_t outImagVal = __riscv_vmerge_vvm_f32m4(
-                __riscv_vfneg_v_f32m4(sinVal, vl), sinVal, sinSignMask, vl
+                sinVal, __riscv_vfneg_v_f32m4(sinVal, vl), sinSignMask, vl
             );
             vfloat32m4_t outRealVal = __riscv_vmerge_vvm_f32m4(
-                cosVal, __riscv_vfneg_v_f32m4(cosVal, vl), cosSignMask, vl
+                __riscv_vfneg_v_f32m4(cosVal, vl), cosVal, cosSignMask, vl
             );
 
             // Store out[0..vl)
