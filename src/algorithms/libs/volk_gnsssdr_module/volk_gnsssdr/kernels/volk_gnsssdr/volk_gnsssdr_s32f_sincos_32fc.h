@@ -955,11 +955,9 @@ static inline void volk_gnsssdr_s32f_sincos_32fc_rvv(lv_32fc_t* out, const float
 
     // Initialize other pointers for consistency
     float* phasePtr = phase;
-    const float* phaseIncPtr = phase_inc;
 
     // Initialize pointers to keep track as stripmine
     float* outPtr = (float*) out;
-    const float* inPtr = in;
 
     for (size_t vl; n > 0; n -= vl, outPtr += vl * 2, inPtr += vl)
         {
@@ -970,7 +968,7 @@ static inline void volk_gnsssdr_s32f_sincos_32fc_rvv(lv_32fc_t* out, const float
             vfloat32m4_t phaseVal = __riscv_vfmv_v_f_f32m4(*phasePtr, vl);
 
             // Splat phaseInc
-            vfloat32m4_t phaseIncVal = __riscv_vfmv_v_f_f32m4(*phaseIncPtr, vl);
+            vfloat32m4_t phaseIncVal = __riscv_vfmv_v_f_f32m4(phase_inc, vl);
 
             // iterFloat[i] = (float) i
             vuint32m4_t iterVal = __riscv_vid_v_u32m4(vl);
@@ -1071,7 +1069,7 @@ static inline void volk_gnsssdr_s32f_sincos_32fc_rvv(lv_32fc_t* out, const float
             *phasePtr = __riscv_vfmv_f_s_f32m4_f32(phaseVal);
 
             // Account for multiplication after last calculation
-            *phasePtr *= *phaseIncPtr;
+            *phasePtr *= phase_inc;
 
             // In looping, decrement the number of
             // elements left and increment the pointers
