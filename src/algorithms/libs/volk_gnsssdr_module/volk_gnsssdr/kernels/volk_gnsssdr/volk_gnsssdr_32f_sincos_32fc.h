@@ -52,7 +52,7 @@
 
 static inline void volk_gnsssdr_32f_sincos_32fc_generic(lv_32fc_t* out, const float* in, unsigned int num_points)
 {
-    for (int i = 0; i < n; i++)
+    for (int i = 0; i < num_points; i++)
         {
             out[i] = lv_cmake(cos(in[i]), sin(in[i]));
         }
