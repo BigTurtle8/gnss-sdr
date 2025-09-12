@@ -48,6 +48,19 @@
 #include <volk_gnsssdr/volk_gnsssdr_complex.h>
 #include <math.h>
 
+#ifdef LV_HAVE_GENERIC
+
+static inline void volk_gnsssdr_32f_sincos_32fc_generic(lv_32fc_t* out, const float* in, unsigned int num_points)
+{
+    for (int i = 0; i < n; i++)
+        {
+            out[i] = lv_cmake(cos(in[i]), sin(in[i]));
+        }
+}
+
+#endif /* LV_HAVE_GENERIC */
+
+
 #ifdef LV_HAVE_SSE4_1
 #include <smmintrin.h>
 /* Adapted from the original VOLK for comparison purposes.
@@ -732,6 +745,8 @@ static inline void volk_gnsssdr_32f_sincos_32fc_neon(lv_32fc_t* out, const float
 }
 
 #endif /* LV_HAVE_NEON  */
+
+
 
 
 #endif /* INCLUDED_volk_gnsssdr_32f_sincos_32fc_H  */
