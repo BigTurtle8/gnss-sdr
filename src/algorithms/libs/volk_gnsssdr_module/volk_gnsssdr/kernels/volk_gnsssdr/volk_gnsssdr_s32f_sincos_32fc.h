@@ -1068,8 +1068,8 @@ static inline void volk_gnsssdr_s32f_sincos_32fc_rvv(lv_32fc_t* out, const float
             phaseVal = __riscv_vslidedown_vx_f32m4(phaseVal, vl - 1, vl);
             *phasePtr = __riscv_vfmv_f_s_f32m4_f32(phaseVal);
 
-            // Account for multiplication after last calculation
-            *phasePtr *= phase_inc;
+            // Account for increment after last calculation
+            *phasePtr += phase_inc;
 
             // In looping, decrement the number of
             // elements left and increment the pointers
