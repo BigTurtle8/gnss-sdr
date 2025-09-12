@@ -823,7 +823,7 @@ static inline void volk_gnsssdr_32f_sincos_32fc_rvv(lv_32fc_t* out, const float*
             y1Val = __riscv_vfadd_vf_f32m4(y1Val, c_coscof_p2, vl);
             y1Val = __riscv_vfmul_vv_f32m4(y1Val, xSqVal, vl);
             y1Val = __riscv_vfmul_vv_f32m4(y1Val, xSqVal, vl);
-            y1Val = __riscv_vfsub_vv_f32m4(y1Val,__riscv_vfmul_vf_f32m4(xSqVal, -0.5f, vl), vl);
+            y1Val = __riscv_vfsub_vv_f32m4(y1Val, __riscv_vfmul_vf_f32m4(xSqVal, 0.5f, vl), vl);
             y1Val = __riscv_vfadd_vf_f32m4(y1Val, 1, vl);
 
             vfloat32m4_t y2Val = __riscv_vfmul_vf_f32m4(xSqVal, c_sincof_p0, vl);
