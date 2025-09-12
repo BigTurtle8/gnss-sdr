@@ -770,13 +770,16 @@ static inline void volk_gnsssdr_32f_sincos_32fc_rvv(lv_32fc_t* out, const float*
             // signMask[i] = in[i] < 0
             vbool8_t signMask = __riscv_vmflt_vf_f32m4_b8(inVal, (float) 0, vl);
 
-            // y[i] = (4/PI) * in[i]
-            vfloat32m4_t yVal = __riscv_vfmul_vf_f32m4(inVal, c_cephes_FOPI, vl);
+            // x[i] = |in[i]|
+            vfloat32m4_t xVal = __riscv_vfabs_v_f32m4(inVal, vl);
+
+            // y[i] = (4/PI) * x[i]
+            vfloat32m4_t yVal = __riscv_vfmul_vf_f32m4(xVal, c_cephes_FOPI, vl);
 
             // Quantize (reduce) y into discrete chunks to approximate into,
             // and use the integer version to do some neat bit masking in order
             // to encode sin/cos signs
-            // reduced[i] = ( ((unsigned int) y[i] + 1) / 2 ) * 2 = ((unsigned int) y[i] + 1) & -1
+            // reduced[i] = ( ((unsigned int) y[i] + 1) / 2 ) * 2 = ((unsigned int) y[i] + 1) & ~1
             vuint32m4_t reducedVal = __riscv_vfcvt_xu_f_v_u32m4(yVal, vl);
             reducedVal = __riscv_vadd_vx_u32m4(reducedVal, 1, vl);
             reducedVal = __riscv_vand_vx_u32m4(reducedVal, ~1, vl);
