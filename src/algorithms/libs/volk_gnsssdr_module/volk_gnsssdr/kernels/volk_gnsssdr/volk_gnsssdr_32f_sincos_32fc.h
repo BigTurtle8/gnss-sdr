@@ -741,16 +741,16 @@ static inline void volk_gnsssdr_32f_sincos_32fc_neon(lv_32fc_t* out, const float
 static inline void volk_gnsssdr_32f_sincos_32fc_rvv(lv_32fc_t* out, const float* in, unsigned int num_points)
 {
     // Copied from other implementations, specifically NEON
-    const float32_t c_minus_cephes_DP1 = -0.78515625;
-    const float32_t c_minus_cephes_DP2 = -2.4187564849853515625e-4;
-    const float32_t c_minus_cephes_DP3 = -3.77489497744594108e-8;
-    const float32_t c_sincof_p0 = -1.9515295891E-4;
-    const float32_t c_sincof_p1 = 8.3321608736E-3;
-    const float32_t c_sincof_p2 = -1.6666654611E-1;
-    const float32_t c_coscof_p0 = 2.443315711809948E-005;
-    const float32_t c_coscof_p1 = -1.388731625493765E-003;
-    const float32_t c_coscof_p2 = 4.166664568298827E-002;
-    const float32_t c_cephes_FOPI = 1.27323954473516;
+    const float c_minus_cephes_DP1 = -0.78515625;
+    const float c_minus_cephes_DP2 = -2.4187564849853515625e-4;
+    const float c_minus_cephes_DP3 = -3.77489497744594108e-8;
+    const float c_sincof_p0 = -1.9515295891E-4;
+    const float c_sincof_p1 = 8.3321608736E-3;
+    const float c_sincof_p2 = -1.6666654611E-1;
+    const float c_coscof_p0 = 2.443315711809948E-005;
+    const float c_coscof_p1 = -1.388731625493765E-003;
+    const float c_coscof_p2 = 4.166664568298827E-002;
+    const float c_cephes_FOPI = 1.27323954473516;
 
     size_t n = num_points;
 
@@ -804,11 +804,11 @@ static inline void volk_gnsssdr_32f_sincos_32fc_rvv(lv_32fc_t* out, const float*
             // The magic pass: "Extended precision modular arithmetic"
             // x[i] = ((in[i] + reducedY[i] * -DP1) + reducedY[i] * -DP2) + reducedY[i] * -DP3;
             vfloat32m4_t xmm1Val = __riscv_vfmul_vf_f32m4(reducedYVal, c_minus_cephes_DP1, vl);
-            vfloat32m4_t xVal = __riscv_vadd_vv_f32m4(xVal, xmm1Val, vl);
+            vfloat32m4_t xVal = __riscv_vfadd_vv_f32m4(xVal, xmm1Val, vl);
             vfloat32m4_t xmm2Val = __riscv_vfmul_vf_f32m4(reducedYVal, c_minus_cephes_DP2, vl);
-            xVal = __riscv_vadd_vv_f32m4(xVal, xmm2Val, vl);
+            xVal = __riscv_vfadd_vv_f32m4(xVal, xmm2Val, vl);
             vfloat32m4_t xmm3Val = __riscv_vfmul_vf_f32m4(reducedYVal, c_minus_cephes_DP3, vl);
-            xVal = __riscv_vadd_vv_f32m4(xVal, xmm3Val, vl);
+            xVal = __riscv_vfadd_vv_f32m4(xVal, xmm3Val, vl);
 
             // Calculate both polynomials; one for 0 <= x <= PI / 4,
             //  other for PI / 4 <= x <= PI / 2
@@ -818,7 +818,7 @@ static inline void volk_gnsssdr_32f_sincos_32fc_rvv(lv_32fc_t* out, const float*
             y1Val = __riscv_vfadd_vf_f32m4(y1Val, c_coscof_p1, vl);
             y1Val = __riscv_vfmul_vv_f32m4(y1Val, xSqVal, vl);
             y1Val = __riscv_vfadd_vf_f32m4(y1Val, c_coscof_p2, vl);
-            y1Val = __riscv_vfmul_vf_f32m4(y1Val, xSqVal, vl);
+            y1Val = __riscv_vfmul_vv_f32m4(y1Val, xSqVal, vl);
             y1Val = __riscv_vfmul_vv_f32m4(y1Val, xSqVal, vl);
             y1Val = __riscv_vfsub_vv_f32m4(y1Val,__riscv_vfmul_vf_f32m4(xSqVal, -0.5f, vl), vl);
             y1Val = __riscv_vfadd_vf_f32m4(y1Val, 1, vl);
@@ -840,10 +840,10 @@ static inline void volk_gnsssdr_32f_sincos_32fc_rvv(lv_32fc_t* out, const float*
             // outImag[i] = sinSignMask ? -sin[i] : sin[i]
             // outReal[i] = cosSignMask ? cos[i] : -cos[i]
             vfloat32m4_t outImagVal = __riscv_vmerge_vvm_f32m4(
-                __riscv_vfneg_v_f32m4(sinVal, vl), sinVal, vl
+                __riscv_vfneg_v_f32m4(sinVal, vl), sinVal, sinSignMask, vl
             );
             vfloat32m4_t outRealVal = __riscv_vmerge_vvm_f32m4(
-                cosVal, __riscv_vfneg_v_f32m4(cosVal, vl), vl
+                cosVal, __riscv_vfneg_v_f32m4(cosVal, vl), cosSignMask, vl
             );
 
             // Store out[0..vl)
