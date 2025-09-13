@@ -404,7 +404,7 @@ static inline void volk_gnsssdr_8i_max_s8i_rvv(char* target, const char* src0, u
 
     // Initialize pointer of correct type
     // to keep track while strip mining
-    const signed char* inPtr = (const signed char*) src0;
+    const signed char* inPtr = (const signed char*)src0;
 
     // max[0] = in[0]
     vint8m1_t maxVal = __riscv_vmv_v_x_i8m1(inPtr[0], 1);
@@ -426,7 +426,7 @@ static inline void volk_gnsssdr_8i_max_s8i_rvv(char* target, const char* src0, u
         }
 
     // Explicitly cast to type accepted by pointer
-    signed char* resPtr = (signed char*) target;
+    signed char* resPtr = (signed char*)target;
 
     // *target = max[0]
     __riscv_vse8_v_i8m1(resPtr, maxVal, 1);

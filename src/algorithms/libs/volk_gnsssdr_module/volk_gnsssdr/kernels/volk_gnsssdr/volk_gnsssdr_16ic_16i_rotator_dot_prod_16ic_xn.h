@@ -916,13 +916,12 @@ static inline void volk_gnsssdr_16ic_16i_rotator_dot_prod_16ic_xn_rvv(lv_16sc_t*
                     // elements left and increment the pointers
                     // by the number of elements processed
                 }
-            // Regenerate phase
+                // Regenerate phase
 #ifdef __cplusplus
             (*phase) /= std::abs((*phase));
 #else
             (*phase) /= hypotf(lv_creal(*phase), lv_cimag(*phase));
 #endif
-
         }
 
     size_t n = num_points % ROTATOR_RELOAD;
