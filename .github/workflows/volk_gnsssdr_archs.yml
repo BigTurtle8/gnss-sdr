@@ -24,15 +24,15 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # - arch: aarch64
-          #   distro: ubuntu24.04
-          #   compiler: { name: g++-14, cc: gcc-14, cxx: g++-14 }
-          # - arch: aarch64
-          #   distro: ubuntu24.04
-          #   compiler: { name: clang-18, cc: clang-18, cxx: clang++-18 }
-          # - arch: armv7
-          #   distro: ubuntu24.04
-          #   compiler: { name: g++-14, cc: gcc-14, cxx: g++-14 }
+          - arch: aarch64
+            distro: ubuntu24.04
+            compiler: { name: g++-14, cc: gcc-14, cxx: g++-14 }
+          - arch: aarch64
+            distro: ubuntu24.04
+            compiler: { name: clang-18, cc: clang-18, cxx: clang++-18 }
+          - arch: armv7
+            distro: ubuntu24.04
+            compiler: { name: g++-14, cc: gcc-14, cxx: g++-14 }
           - arch: riscv64
             distro: ubuntu24.04
             compiler: { name: g++-14, cc: gcc-14, cxx: g++-14 }
